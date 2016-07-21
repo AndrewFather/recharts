@@ -722,6 +722,13 @@ echartR<-function(data, x=NULL, y, z=NULL, series=NULL, weight=NULL,
              "we now only support the following charts:\n",
              supportedTypes)
     }
+<<<<<<< HEAD
+=======
+    loadpkg("Hmisc")
+    loadpkg("plyr")
+    loadpkg("reshape2")
+    loadpkg("recharts","yihui/recharts")
+>>>>>>> bc43ebcb4f120d09a7632eed3ef8d18931ed0ac3
 
     #-----transform var to class(name)-----------
     x <- substitute(x); y <- substitute(y); z <- substitute(z); x1<- substitute(x1)
@@ -1299,7 +1306,11 @@ echartR<-function(data, x=NULL, y, z=NULL, series=NULL, weight=NULL,
                 tmpYAxis[['max']] <- 1
                 tmpYAxis[['min']] <- 0
             }
+<<<<<<< HEAD
 
+=======
+            
+>>>>>>> bc43ebcb4f120d09a7632eed3ef8d18931ed0ac3
             if (!is.null(varYAxis[['reverse']])){
                 if (varYAxis[['reverse']]) {
                     if (is.null(tmpYAxis[['axisLabel']])) tmpYAxis[['axisLabel']] <- list()

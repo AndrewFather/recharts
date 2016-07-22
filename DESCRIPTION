@@ -8,6 +8,7 @@ Authors@R: c(
     person("Taiyun", "Wei", role = c("aut", "cre"), email = "weitaiyun@gmail.com"),
     person("Yihui", "Xie", role = "aut"),
     person("Yang", "Zhou", role = "aut"),
+    person("Yiying", "Wang", role = "aut"),
     person("Baidu Inc", role = c("ctb", "cph"), comment = "the ECharts library under htmlwidgets/lib")
     )
 Description: Provides an R interface to the JavaScript library ECharts for
@@ -18,10 +19,13 @@ Imports:
     magrittr
 Suggests:
     dplyr,
+    ggthemes,
     Hmisc,
     knitr,
+    RColorBrewer,
     reshape2,
     rmarkdown,
+    scales,
     shiny (>= 0.12.1)
 License: MIT + file LICENSE
 LazyData: TRUE

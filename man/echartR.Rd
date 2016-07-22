@@ -171,15 +171,11 @@ Title position default to 6 (o'clock), which means bottom middle.
 Defaults to legend, toolbox, dataRange, dataZoom, roamController are
 11, 1, 6, 8, 2, respectively. Default pos=list(title=6, legend=11, toolbox=1,
 dataZoom=6, dataRange=8, roam=2)}
-
 \item{calculable}{Calculable switch (Echarts patent).}
-
 \item{asImage}{renderAsImage switch.Deafult to FALSE.}
-
 \item{markLine}{Short form ：
 \tabular(llll){
 series name/index * \tab line name \tab Line type \tab Light effect \cr
-series name/index \tab line name \tab Line type \tab Light effect \cr
 String or number \tab String / NA \tab min/max/average/lm \tab TRUE / FALSE
 }
 Full form : \cr
@@ -200,10 +196,8 @@ Examples: \cr
  comprehended as coordinates. In map charts, these coordinates should be lattitudes
  and longitudes. t(c('male',NA,100,0,5,100,5,T)) opens light effects of series 'male'.
 }}
-
 \item{markLinesmooth}{Used this instead of markLine for smooth marklines with
 totally identical grammar.}
-
 \item{markPoint}{Show markpoints, default to NULL.
 The grammar is a data.frame or matrix with 4 or 6 columns:
 Short form ：\cr
@@ -227,10 +221,8 @@ Examples: \cr
  as coordinates. In map charts, these coordinates should be lattitudes and longitudes.
  t(c('male',NA,100,0,5,T)) opens light effects of series 'male'.
 }}
-
 \item{theme}{Default theme=list(backgroundColor=color name/value,
 borderColor=color name/value, borderWidth=1)}
-
 \item{...}{ellipsis}
 }
 \value{
@@ -244,4 +236,3 @@ A workaround function to generate echart objects.
 echartR(iris, x=Sepal.Width, y=Petal.Width, series=Species, type='scatter')
 }
 }
-

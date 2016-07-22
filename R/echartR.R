@@ -2355,7 +2355,7 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
 }
 
 
-setTitle <- function(title=NULL, link=NULL,
+makeTitle <- function(title=NULL, link=NULL,
                      subtitle=NULL, sublink=NULL, pos=6, ...){
 
     lstTitle <- list(text=ifelse(is.null(title), "", title),

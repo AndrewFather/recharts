@@ -82,7 +82,8 @@ determineType = function(x, y) {
   if (is.null(x) && is.ts(y)) return('line')
   # FIXME: 'histogram' is not a standard plot type of ECharts
   # http://echarts.baidu.com/doc/doc.html
-  if (is.numeric(x) && is.null(y)) return('histogram')
+  if ((is.numeric(x) && is.null(y)) || (is.numeric(y) && is.null(x)))
+      return('histogram')
   message('The structure of x:')
   str(x)
   message('The structure of y:')
@@ -95,7 +96,7 @@ getDependency = function(type) {
   if (is.null(type)) return()
   htmltools::htmlDependency(
     'echarts-module', EChartsVersion,
-    src = system.file('htmlwidgets/lib/echarts/chart', package = 'recharts'),
+    src = system.file('inst/htmlwidgets/lib/echarts', package = 'recharts'),
     script = sprintf('%s.js', type)
   )
 }

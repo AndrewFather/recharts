@@ -6,7 +6,7 @@
 \usage{
 echartR(data, x = NULL, y, z = NULL, series = NULL, weight = NULL,
   xcoord = NULL, ycoord = NULL, x1 = NULL, xcoord1 = NULL,
-  ycoord1 = NULL, type = "scatter", stack = FALSE, title = NULL,
+  ycoord1 = NULL, type = "auto", stack = FALSE, title = NULL,
   subtitle = NULL, title_url = NULL, subtitle_url = NULL,
   symbolList = NULL, dataZoom = NULL, dataRange = NULL,
   splitNumber = NULL, dataRangePalette = NULL, xlab = NULL,
@@ -17,12 +17,12 @@ echartR(data, x = NULL, y, z = NULL, series = NULL, weight = NULL,
   = FALSE, rotate = 0), ylab1 = NULL, yAxis1 = list(lab = ylab1, series =
   NULL, reverse = FALSE, color = NULL, splitLine = TRUE, banded = FALSE, rotate
   = 0), xyflip = FALSE, AxisAtZero = c(FALSE, TRUE), scale = TRUE,
-  palette = "aetnagreen", tooltip = TRUE, legend = TRUE,
-  toolbox = c(TRUE, "cn"), pos = list(title = 6, legend = 11, toolbox = 1,
-  dataZoom = 6, dataRange = 8, roam = 2), calculable = TRUE,
-  asImage = FALSE, markLine = NULL, markLinesmooth = NULL,
-  markPoint = NULL, theme = list(backgroundColor = NULL, borderColor = NULL,
-  borderWidth = 1, width = NULL, height = NULL), ...)
+  palette = NULL, tooltip = TRUE, legend = TRUE, toolbox = c(TRUE,
+  "cn"), pos = list(title = 6, legend = 11, toolbox = 1, dataZoom = 6,
+  dataRange = 8, roam = 2), calculable = TRUE, asImage = FALSE,
+  markLine = markLinesmooth, markLinesmooth = NULL, markPoint = NULL,
+  theme = list(backgroundColor = NULL, borderColor = NULL, borderWidth = 1,
+  width = NULL, height = NULL), ...)
 }
 \arguments{
 \item{data}{data.frame. No defaults.}
@@ -47,17 +47,23 @@ echartR(data, x = NULL, y, z = NULL, series = NULL, weight = NULL,
 
 \item{ycoord1}{Backup Longitude variable, only for line-marking map.}
 
-\item{type}{options 'scatter', 'bubble', 'bar', 'line', 'linesmooth', 'map',
-'k', 'pie', 'ring', 'rose','area', 'areasmooth', 'chordribbon', 'chord', 'force',
-'tree', 'treemap', 'wordcloud', 'heatmap', 'histogram', 'funnel', 'pyramid',
-'radar', 'radarfill'
+\item{type}{options \code{'scatter', 'point', 'bubble', 'bar', 'line', 'map',
+'k', 'pie', 'ring', 'rose','area', 'chord', 'force', 'tree', 'treemap',
+'wordcloud', 'heatmap', 'histogram', 'funnel', 'pyramid', 'radar'} \cr
 \itemize{
-  \item If 'map' was chosen, the control option should be a vector of length 3:
-  \code{c('map',mapType,markType)}. \code{mapType} could be either 'world' or 'china',
+  \item If 'map' is chosen, the control option should be a vector of length 3:
+  \code{c('map', mapType, markType)}. \code{mapType} could be either 'world' or 'china',
   of which simplified Chinese names are required for 'china'.
   When markType equals to 'area', the function colors polygons to show the effects;
   while equals to 'point', it ticks pins on the map; while equals to 'line',
   it ticks lines on the map.
+  \item If 'line', 'area' are chosen, the control option should be a vector of
+  length 2: \code{c(main type, type feature)}. \code{main type} is line or area,
+  \code{type feature} is 'smooth'.
+  \item If 'chord' is chosen, the control option should be a vector of
+  length 2: \code{c('chord', 'riboon')}, which refers to chord chart with ribbon.
+  \item If 'radar' is chosen, the control option should be a vector of
+  length 2: \code{c('radar', 'fill')}, which refers to radar chart with color filled.
 }}
 
 \item{stack}{Default to FALSE (do not stack). Used in stacked column, bar, line
@@ -75,30 +81,30 @@ and area chart, etc.}
 If the length of the symbols array is smaller than number of levels of the series,
 the last symbol will be used to extend the array. If you set symbolList NULL or
 leave it unset, the function circulates the default symbol list of Echarts:
-c('circle', 'rectangle', 'triangle', 'diamond', 'emptyCircle', 'emptyRectangle',
-'emptyTriangle', 'emptyDiamond'). You can also assign non-standard symbols,
-such as 'heart','droplet','pin','arrow','star5','star6', 'star7', etc.
+\code{c('circle', 'rectangle', 'triangle', 'diamond', 'emptyCircle', 'emptyRectangle',
+'emptyTriangle', 'emptyDiamond')}. You can also assign non-standard symbols,
+such as \code{'heart', 'droplet', 'pin', 'arrow', 'star5', 'star6', 'star7'}, etc.
 When assigned to 'none', no symbols are shown.}
 
-\item{dataZoom}{If dataZoom=TRUE, the default range is 0-100%.
+\item{dataZoom}{If dataZoom=\code{TRUE}, the default range is 0-100.
 You can assign a vector with length of 2 to dataZoom to control the initial range.
-E.g.,c(30,70) means from 30% to 70% at the initial view.}
+E.g.,c(30,70) means from 30 to 70 percent at the initial view.}
 
-\item{dataRange}{The range to zoom the data. Default to FALSE.
-Set dataRange=c(High value label,Low value label) to enable dataRange.}
+\item{dataRange}{The range to zoom the data. Default FALSE.
+Set dataRange=\code{c(High value label, Low value label)} to enable dataRange.}
 
 \item{splitNumber}{When dataRange is on, assign splitNumber to cut the range
 into discrete sections. Default to 0 (continuous range). In histogram,
 if splitNumber is set, the y variable will be cut into splitNumber groups.}
 
 \item{dataRangePalette}{You can independently assign palettes to dataRange
-(similar to overall palette). Default to NULL (applies echarts defaults).}
+(similar to overall palette). Default NULL (applies echarts defaults).}
 
 \item{xlab}{You can also omit xAxis, directly assign xAxis title.
 xlab has a higher priority than xAxis[['lab']].}
 
-\item{xAxis}{x Axis parameters in a list, default to
-list(lab=NULL, color=NULL, splitLine=TRUE, banded=FALSE, rotate=0).}
+\item{xAxis}{x Axis parameters in a list, default
+\code{list(lab=NULL, color=NULL, splitLine=TRUE, banded=FALSE, rotate=0)}.}
 
 \item{ylab}{You can also omit yAxis, directly assign yAxis title.
 ylab has a higher priority than yAxis[['lab']].}
@@ -108,8 +114,8 @@ ylab has a higher priority than yAxis[['lab']].}
 \item{xlab1}{Title of secondary x-axis, with higher priority than lab in xAxis1 list,}
 
 \item{xAxis1}{Secondary x axis, effecitve only if there are multiple series.
-Written in a list, default to list(lab=NULL, series=NULL, reverse=FALSE,
-color=NULL, splitLine=TRUE, banded=FALSE, rotate=0).
+Written in a list, default \code{list(lab=NULL, series=NULL, reverse=FALSE,
+color=NULL, splitLine=TRUE, banded=FALSE, rotate=0)}.
 series set which series to put on secondary x-axis, which can be either a name
 vector or an index vector, e.g., c(1,2) or c('male','female').
 The data is fliped up when reverse is set TRUE.}
@@ -118,23 +124,23 @@ The data is fliped up when reverse is set TRUE.}
 
 \item{yAxis1}{Refer to xAxis1}
 
-\item{xyflip}{Flip x,y-axies. Default to FALSE.}
+\item{xyflip}{Flip x, y-axies. Default FALSE.}
 
-\item{AxisAtZero}{Axes cross at zero. Default to c(FALSE, FALSE).}
+\item{AxisAtZero}{Axes (and sub axes) cross at zero. Default \code{c(FALSE, TRUE)}.}
 
-\item{scale}{Rescale the axes based on min and max values. Default to TRUE.}
+\item{scale}{Rescale the axes based on min and max values. Default TRUE.}
 
-\item{palette}{Overall palette. Default to 'aetnagreen'. \cr
-Palette names:
+\item{palette}{Overall palette. Default NULL (echarts defaults). \cr
+Palette names: \cr
 \itemize{
  \item Aetna palettes: Including 'aetnagreen', 'aetnablue', 'aetnaviolet',
  'aetnaorange', 'aetnateal', 'aetnacranberry' \cr
- \item RColorBrewer palettes: Including 'BrBG', 'PiYG', 'PRGn', 'PuOr', 'RdBu',
+ \item \link{RColorBrewer} palettes: Including 'BrBG', 'PiYG', 'PRGn', 'PuOr', 'RdBu',
  'RdGy', 'RdYlBu', 'RdYlGn', 'Spectral', 'Accent', 'Dark2', 'Paired', 'Pastel1',
  'Pastel2', 'Set1', 'Set2', 'Set3', 'Blues', 'BuGn', 'BuPu', 'GnBu', 'Greens',
  'Greys', 'Oranges', 'OrRd', 'PuBu', 'PuBuGn', 'PuRd', 'Purples', 'RdPu', 'Reds',
  'YlGn', 'YlGnBu', 'YlOrBr', 'YlOrRd' \cr
- \item ggthemes palettes: 'calc', 'economist', 'economist_white', 'economist_stata',
+ \item \link{ggthemes} palettes: 'calc', 'economist', 'economist_white', 'economist_stata',
  'excel', 'exel_fill', 'excel_old', 'excel_new', 'few', 'fivethirtyeight',
  'gdocs', 'pander', 'tableau', 'stata', 'stata1','stata1r','statamono',
  'tableau20', 'tableau10medium', 'tableaugray', 'tableauprgy', 'tableaublrd',
@@ -145,85 +151,93 @@ Palette names:
  'wsj_black_green', 'wsj_dem_rep', 'colorblind', 'trafficlight' \cr
  \item Other palettes: 'rainbow', 'terrain', 'topo', 'heat', 'cm'
 }
-\cr Usage:
+Usage: \cr
 \itemize{
  \item Do not set the value and function defaults will be loaded \cr
  \item Set palette=NULL to use Echarts defaults \cr
  \item Set palette=palette name to assign any palette listed above \cr
- \item Set palette=palette name(number) to restrict number of colors within the
- palette (e.g., palette='calc(3)' picks 3 colors out of 'calc' RANDOMLY) \cr
- \item Set palette=c(color1,color2,color3,...) to define a palette vector,
- made of which either color names or Hex expressions. Use colors() to check
- available color names and check the effects using demo(colors).
+ \item Set palette=\code{palette name(number)} to restrict number of colors within the
+ palette (e.g., \code{palette='calc(3)'} picks 3 colors out of 'calc' RANDOMLY) \cr
+ \item Set palette=\code{c(color1, color2, color3, ...)} to define a palette vector,
+ made of which either color names or Hex expressions. Use \code{\link{colors}()} to check
+ available color names and check the effects using \code{demo(colors)}.
 }}
 
-\item{tooltip}{Mouse tip effects swtich. Default to TRUE.}
+\item{tooltip}{Mouse tip effects swtich. Default TRUE.}
 
 \item{legend}{Whether to show the legend. Default to TRUE. Can also be a list
-length 2: list(mode='single/multiple',select=vector(...)). E.g.,
-list(mode='single',select='Male') means singular choice, with series 'Male'
+length 2: \code{list(mode='single/multiple', select=vector(...))}. E.g.,
+\code{list(mode='single', select='Male')} means singular choice, with series 'Male'
 selected at the initial view. legend=FALSE closes legend.}
 
-\item{toolbox}{Echarts Tool box switch. Default to TRUE.}
+\item{toolbox}{Echarts Tool box switch. Default TRUE.}
 
 \item{pos}{Position of image elements which are integers 1-12.
 Title position default to 6 (o'clock), which means bottom middle.
 Defaults to legend, toolbox, dataRange, dataZoom, roamController are
 11, 1, 6, 8, 2, respectively. Default pos=list(title=6, legend=11, toolbox=1,
 dataZoom=6, dataRange=8, roam=2)}
+
 \item{calculable}{Calculable switch (Echarts patent).}
+
 \item{asImage}{renderAsImage switch.Deafult to FALSE.}
-\item{markLine}{Short form ：
-\tabular(llll){
-series name/index * \tab line name \tab Line type \tab Light effect \cr
-String or number \tab String / NA \tab min/max/average/lm \tab TRUE / FALSE
-}
-Full form : \cr
-\tabular(llllllll){
-series name/index * \tab line name \tab Value \tab P0 x \tab P0 y \tab P1 x
-\tab P1 y \tab Light effect \cr
-String or number \tab String/NA \tab num    \tab x val \tab y val \tab x val
-\tab y val \tab TRUE / FALSE
-}
-Examples: \cr
-\itemize{
- \item E.g., both t(c('male',NA,'average',F)) and t(c(1,NA,'average',F)) refer to
- an average markline of the series 'male', only available for line, linesmooth,
- bar, scatter, bubble charts. 'lm' refers to linear regresson markline which is
- only available for scatters and bubbles. t(c(1,NA,'average',T)) opens light effects
- of series 'male'. \cr
- \item In line, bar, k and scatter charts, 'P0 x','P0 y','P1 x','P1 y' are
- comprehended as coordinates. In map charts, these coordinates should be lattitudes
- and longitudes. t(c('male',NA,100,0,5,100,5,T)) opens light effects of series 'male'.
-}}
-\item{markLinesmooth}{Used this instead of markLine for smooth marklines with
-totally identical grammar.}
-\item{markPoint}{Show markpoints, default to NULL.
-The grammar is a data.frame or matrix with 4 or 6 columns:
-Short form ：\cr
-\tabular{
-series name/index * \tab Point name \tab Point type \tab Light effect \cr
-String or number \tab String / NA \tab min/max \tab TRUE / FALSE
+
+\item{markLine}{Short form: \cr
+\tabular{llll}{
+ [col 1] series name|index \tab [col 2] line name \tab [col 3] Line type
+ \tab [col 4] Light effect \cr
+ String or number \tab String|NA \tab min|max|average|lm \tab TRUE|FALSE
 }
 Full form: \cr
-\tabular{
-series name/index *    \tab Point name    \tab Value    \tab P x \tab P y
-\tab Light effect \cr
-String or number    \tab String / NA    \tab num    \tab x val    \tab y val    \tab
-TRUE / FALSE
+\tabular{llllllll}{
+ [col 1] series name|index \tab [col 2] line name \tab [col 3] Value
+ \tab [col 4] P0 x \tab [col 5] P0 y \tab [col 6] P1 x \tab [col 7] P1 y
+ \tab [col 8] Light effect \cr
+ String|number \tab String|NA \tab num \tab x val \tab y val \tab x val
+ \tab y val \tab TRUE|FALSE
+}
+Examples:
+\itemize{
+ \item E.g., both \code{t(c('male', NA, 'average', FALSE))} and \code{t(c(1, NA, 'average', FALSE))}
+ refer to an average markline of the series 'male', only available for line,
+ linesmooth, bar, scatter, bubble charts. 'lm' refers to linear regresson
+ markline which is only available for scatters and bubbles.
+ \code{t(c(1, NA, 'average', TRUE))} opens light effects of series 'male'. \cr
+ \item In line, bar, k and scatter charts, 'P0 x','P0 y','P1 x','P1 y' are
+ comprehended as coordinates. In map charts, these coordinates should be lattitudes
+ and longitudes. \code{t(c('male', NA, 100, 0, 5, 100, 5, TRUE))} opens light effects of series 'male'.
+}}
+
+\item{markLinesmooth}{Used this instead of markLine for smooth marklines with
+totally identical grammar.}
+
+\item{markPoint}{Show markpoints, default to NULL.
+The grammar is a data.frame or matrix with 4 or 6 columns:
+Short form: \cr
+\tabular{llll}{
+ <col 1> series name|index \tab <col 2> Point name \tab <col 3> Point type \tab <col 4> Light effect \cr
+ String or number \tab String|NA \tab min|max \tab TRUE|FALSE
+ }
+Full form: \cr
+\tabular{llllll}{
+ [col 1] series name|index \tab [col 2] Point name \tab [col 3] Value \tab [col 4] P x
+ \tab [col 5] P y \tab [col 6] Light effect \cr
+ String or number \tab String|NA \tab num \tab x val \tab y val \tab TRUE|FALSE
 }
 Examples: \cr
 \itemize{
- \item E.g., both t(c('male',NA,'min',F)) and t(c(1,NA,'min',F)) refer to a
- min markpoint of the series 'male', only available for line, linesmooth, bar,
- scatter, bubble charts. t(c('male',NA,'min',T)) opens light effects of series 'male'.
+ \item E.g., both \code{t(c('male',NA,'min',FALSE))} and \code{t(c(1,NA,'min',FALSE))} refer
+ to a min markpoint of the series 'male', only available for line, linesmooth, bar,
+ scatter, bubble charts. \code{t(c('male',NA,'min',TRUE))} opens light effects of series 'male'.
  \item In line, bar, k and scatter charts, 'P x','P y',... are comprehended
  as coordinates. In map charts, these coordinates should be lattitudes and longitudes.
- t(c('male',NA,100,0,5,T)) opens light effects of series 'male'.
+ \code{t(c('male',NA,100,0,5,TRUE))} opens light effects of series 'male'.
 }}
-\item{theme}{Default theme=list(backgroundColor=color name/value,
-borderColor=color name/value, borderWidth=1)}
-\item{...}{ellipsis}
+
+\item{theme}{Default theme=\code{list(backgroundColor=color name/value,
+borderColor=color name/value, borderWidth=1)}}
+
+\item{...}{elipsis}
 }
 \value{
 An echart object
@@ -234,5 +248,11 @@ A workaround function to generate echart objects.
 \examples{
 \dontrun{
 echartR(iris, x=Sepal.Width, y=Petal.Width, series=Species, type='scatter')
+
+echartR(iris, x=~Sepal.Width, y=~Petal.Width, series=~Species)
 }
 }
+\seealso{
+\code{\link{ggthemes}} \code{\link{RColorBrewer}} \code{\link{echart}}
+}
+

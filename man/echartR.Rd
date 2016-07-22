@@ -179,6 +179,7 @@ dataZoom=6, dataRange=8, roam=2)}
 \item{markLine}{Short form ：
 \tabular(llll){
 series name/index * \tab line name \tab Line type \tab Light effect \cr
+series name/index \tab line name \tab Line type \tab Light effect \cr
 String or number \tab String / NA \tab min/max/average/lm \tab TRUE / FALSE
 }
 Full form : \cr

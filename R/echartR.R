@@ -1,4 +1,3 @@
-#------------Require packages, if not installed, install it--------------
 loadpkg <- function(pkg, url=NULL, repo='cran'){
     # repo accepts cran, github, bioconductor, omegahat
     if (! tolower(repo) %in% c('cran', 'github', 'bioconductor', 'bioc', 'omegahat'))
@@ -627,14 +626,14 @@ tooltipJS <- function(type){
 #' @param asImage renderAsImage switch.Deafult to FALSE.
 #' @param markLine Short form ：
 #' \tabular(llll){
-#' series name/index * \tab line name \tab Line type \tab Light effect \cr
+#' series name/index \tab line name \tab Line type \tab Light effect \cr
 #' String or number \tab String / NA \tab min/max/average/lm \tab TRUE / FALSE
-#' }
+#' } \cr
 #' Full form : \cr
 #' \tabular(llllllll){
 #' series name/index * \tab line name \tab Value \tab P0 x \tab P0 y \tab P1 x
 #' \tab P1 y \tab Light effect \cr
-#' String or number \tab String/NA \tab num	\tab x val \tab y val \tab x val
+#' String or number \tab String/NA \tab num \tab x val \tab y val \tab x val
 #' \tab y val \tab TRUE / FALSE
 #' }
 #' Examples: \cr
@@ -659,9 +658,9 @@ tooltipJS <- function(type){
 #' }
 #' Full form: \cr
 #' \tabular{
-#' series name/index *	\tab Point name	\tab Value	\tab P x \tab P y
+#' series name/index * \tab Point name \tab Value \tab P x \tab P y
 #' \tab Light effect \cr
-#' String or number	\tab String / NA	\tab num	\tab x val	\tab y val	\tab
+#' String or number \tab String / NA \tab num \tab x val \tab y val \tab
 #' TRUE / FALSE
 #' }
 #' Examples: \cr
@@ -722,13 +721,6 @@ echartR<-function(data, x=NULL, y, z=NULL, series=NULL, weight=NULL,
              "we now only support the following charts:\n",
              supportedTypes)
     }
-<<<<<<< HEAD
-=======
-    loadpkg("Hmisc")
-    loadpkg("plyr")
-    loadpkg("reshape2")
-    loadpkg("recharts","yihui/recharts")
->>>>>>> bc43ebcb4f120d09a7632eed3ef8d18931ed0ac3
 
     #-----transform var to class(name)-----------
     x <- substitute(x); y <- substitute(y); z <- substitute(z); x1<- substitute(x1)
@@ -1306,11 +1298,7 @@ echartR<-function(data, x=NULL, y, z=NULL, series=NULL, weight=NULL,
                 tmpYAxis[['max']] <- 1
                 tmpYAxis[['min']] <- 0
             }
-<<<<<<< HEAD
 
-=======
-            
->>>>>>> bc43ebcb4f120d09a7632eed3ef8d18931ed0ac3
             if (!is.null(varYAxis[['reverse']])){
                 if (varYAxis[['reverse']]) {
                     if (is.null(tmpYAxis[['axisLabel']])) tmpYAxis[['axisLabel']] <- list()

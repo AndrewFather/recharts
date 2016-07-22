@@ -1,55 +1,5 @@
-#------------Require packages, if not installed, install it--------------
-loadpkg <- function(pkg, url=NULL, repo='cran'){
-    # repo accepts cran, github, bioconductor, omegahat
-    if (! tolower(repo) %in% c('cran', 'github', 'bioconductor', 'bioc', 'omegahat'))
-        stop ('repo only accepts cran, github, bioc(onductor), omegahat!')
-    pkg=gsub("\"","",deparse(substitute(pkg)))
-    if (! pkg %in% rownames(installed.packages())){
-        if (tolower(repo)=='cran'){
-            install.packages(pkg,repos=getOption("repos"))
-        }else if (tolower(repo)=='github') {
-            if (length(unlist(strsplit(url,split="/")))==1)
-                url<-paste(url,pkg,collapse="/")
-            if (! 'devtools' %in% rownames(installed.packages()))
-                install.packages('devtools')
-            require(devtools)
-            install_github(url)
-        }else if (tolower(repo) %in% c('bioconductor','bioc')){
-            source('http://bioconductor.org/biocLite.R')
-            biocLite()
-            biocLite('pkg')
-        }else if (tolower(repo)=='omegahat'){
-            if (! 'RCurl' %in% rownames(installed.packages()))
-                install.packages('RCurl')
-            install.packages(pkg, repos = "http://www.omegahat.org/R",
-                             type = "source")
-        }
-    }
-    require(package=pkg,character.only = TRUE)
-}
-
 ##----------pre-resiquite functions---------
-evalFormula = function(x, data) { # by yihui xie
-    if (!inherits(x, 'formula')) return(x)
-    if (length(x) != 2) stop('The formula must be one-sided: ', deparse(x))
-    eval(x[[2]], data, environment(x))
-}
-mergeList = function(x, y) { # by yihui xie
-    if (!is.list(y) || length(y) == 0) return(x)
-    yn = names(y)
-    if (length(yn) == 0 || any(yn == '')) {
-        warning('The second list to be merged into the first must be named')
-        return(x)
-    }
-    for (i in yn) {
-        xi = x[[i]]
-        yi = y[[i]]
-        if (is.list(xi)) {
-            if (is.list(yi)) x[[i]] = mergeList(xi, yi)
-        } else x[[i]] = yi
-    }
-    return(x)
-}
+
 isDate <- function(x,format=NULL){
     if (!is.null(format)){
         if (!is(try(as.Date(x),TRUE),"try-error")) TRUE else FALSE
@@ -69,6 +19,17 @@ isLatin <- function(x){
     return(all(grepl("^[[:alnum:][:space:][:punct:]]+$",x,perl=TRUE)))
 }
 #-----Palettes and others---------
+#' Palettes (not export)
+#'
+#' @param palname name of the palette
+#' @param n length of the color vector, default 6
+#' @import RColorBrewer scales ggthemes
+#' @return color vectors
+#'
+#' @examples
+#' \dontrun{
+#' aetnaPal('tableau20')
+#' }
 aetnaPal <- function(palname,n=6){
     brewer <- c('BrBG','PiYG','PRGn','PuOr','RdBu','RdGy','RdYlBu',
                 'RdYlGn','Spectral','Accent','Dark2','Paired','Pastel1',
@@ -121,7 +82,6 @@ aetnaPal <- function(palname,n=6){
         )
     }else if (palname %in% tolower(brewer)){
         Palname <- brewer[which(tolower(brewer)==palname)]
-        loadpkg("RColorBrewer")
         maxcolors <- brewer.pal.info[row.names(brewer.pal.info)==Palname,
                                      "maxcolors"]
         return(brewer.pal(maxcolors,Palname))
@@ -135,8 +95,6 @@ aetnaPal <- function(palname,n=6){
                    cm=substr(cm.colors(n),1,7)
             )
         }else{
-            loadpkg("ggthemes")
-            loadpkg("scales")
             if (palname %in% c('pander')){
                 colObj <- palette_pander(100)
                 return(colObj[!is.na(colObj)])
@@ -212,7 +170,9 @@ rgba <- function(vecrgb){
         stop("Must be of length 3 or 4!")
     }
 }
-funcPal <- function(palette){ # build a function to extract palette info
+funcPal <- function(palette){
+    # build a function to extract palette info
+    # used for echartR
     if (length(palette)==1) {
         if (substr(palette,1,1)=="#"){
             if (nchar(palette)==7){
@@ -269,29 +229,52 @@ vecPos <- function(pos){
     names(TblPos) <- c("x","y","z")
     return(as.vector(unlist(TblPos[pos,])))
 }
+
 #-------table format-----------
-tableReheading <- function(dataset, # the dataset to draw table
-                           heading, # the heading you want to input
-                           # '|' indicates colspan, '=' indicates rowspan
-                           footRows=0, # the last several rows as <tfoot>
-                           align=c('left',rep('center',ncol-1)), # alignment of columns
-                           concatCol=NULL, # index of columns to concatenate
-                                           # to make the table look hierachical
-                           caption=NULL, # table caption
-                           tableWidth='100%'){
+#' Reformat HTML Table
+#'
+#' Convert a data frame to an HTML table object and reformat it.
+#' @param dataset The dataset to draw table.
+#' @param heading The heading you want to input.
+#'        '|' indicates colspan, '=' indicates rowspan.
+#' @param footRows The last several rows as <tfoot>.
+#' @param align Alignment of columns.
+#' @param concatCol Index of columns to concatenate,
+#'        to make the table look hierachical.
+#' @param caption Table caption.
+#' @param tableWidth Width of the table.
+#'
+#' @return A table in HTML.
+#' @importFrom knitr kable
+#' @seealso \code{\link{knitr::kable}}
+#'
+#' @examples
+#' \dontrun{
+#' ## A reformatted table with colspan/colrow=2
+#' heading <- matrix(c("Sepal", NA, "Petal", NA, "Species", "Length", "Width",
+#'                     "Length", "Width", NA), byrow=TRUE, nrow=2)
+#' reheadHTMLTable(head(iris), heading)
+#' }
+reheadHTMLTable <- function(dataset, heading, footRows=0,
+                            align=c('left', rep('center', ncol-1)),
+                            concatCol=NULL, caption=NULL,
+                            tableWidth='100%'){
     if ((!is.null(dataset) & !is.data.frame(dataset)) |
         !(is.data.frame(heading) | is.matrix(heading) | is.vector(heading))){
-        stop(paste0('`dataset` must be a data.frame, while you gave a ',class(dataset),
-                    '\n`heading` must be a vector/matrix/data.frame, while you gave a ',
-                    class(heading),"."))
+        stop(paste0('`dataset` must be a data.frame, while you gave a ',
+                    class(dataset),
+                    '\n`heading` must be a vector/matrix/data.frame, ',
+                    'while you gave a ', class(heading),"."))
     }else{
         if (is.vector(heading)) heading <- t(matrix(heading))
         if (!is.null(dataset)){
             ncol <- ncol(dataset)
-            if (ncol!=ncol(heading)) stop(paste("Not equal counts of columns! Dataset has",
-                                          ncol,"cols, while heading has",ncol(heading),'.'))
+            if (ncol!=ncol(heading))
+                stop(paste("Not equal counts of columns! Dataset has",
+                           ncol, "cols, while heading has",ncol(heading), '.'))
         }else{
-            ncol <- sub('(^[dhr]+?)[^dhr].+$','\\1',gsub('.+?<t([dhr]).+?','\\1',htmltable))
+            ncol <- sub('(^[dhr]+?)[^dhr].+$','\\1',gsub('.+?<t([dhr]).+?',
+                                                         '\\1',htmltable))
             ncol <- table(strsplit(ncol,"")[[1]])
             ncol <- floor((ncol[['h']]+ncol[['d']])/ncol[['r']])
         }
@@ -310,7 +293,7 @@ tableReheading <- function(dataset, # the dataset to draw table
                        rep(align[length(align)],ncol(heading)-length(align)))
         }
         align_simp <- substr(tolower(align),1,1)
-        loadpkg('knitr')
+        # loadPkg('knitr')
 
         dataset <- as.data.frame(dataset)
         if (!is.null(concatCol)){
@@ -328,14 +311,14 @@ tableReheading <- function(dataset, # the dataset to draw table
             htmlBody <- knitr::kable(dataset[1:(nrow(dataset)-footRows),],
                                      format='html',align=align_simp,row.names=FALSE)
             htmlFoot <- knitr::kable(dataset[(nrow(dataset)-footRows+1):
-                                                      nrow(dataset),],
+                                                 nrow(dataset),],
                                      format='html',align=align_simp,row.names=FALSE)
             htmlBody <- gsub("(^.+</tbody>).+$","\\1",htmlBody)
             htmlFoot <- gsub("^.+<tbody>(.+)</tbody>.+$","<tfoot>\\1</tfoot>",htmlFoot)
             htmltable <- paste0(htmlBody,"\n",htmlFoot,"\n</table>")
         }else{
             htmltable <- knitr::kable(dataset,format='html',
-                                      align=align_simp,row.names=FALSE)
+                                      align=align_simp, row.names=FALSE)
         }
 
         if (!is.null(caption)){
@@ -359,13 +342,13 @@ tableReheading <- function(dataset, # the dataset to draw table
         for (i in 1:nrow(heading)){
             for (j in 1:ncol(heading)){
                 dthead[i,j] <- ifelse(heading[i,j] %in% c('|','='),"",
-                                      paste0('<th style="text-align:',align[j],';"> ',
-                                             heading[i,j],' </th>'))
+                                      paste0('   <th style="text-align:',align[j],';"> ',
+                                             heading[i,j],' </th>\n'))
                 if (! heading[i,j] %in% c("|","=")){
                     if (i==1 & heading[i,j]=="$"){
-                        dthead[i,j] <- paste0('<th rowspan="',nrow(heading),
+                        dthead[i,j] <- paste0('   <th rowspan="',nrow(heading),
                                               '" style="text-align:',align[j],
-                                              ';">&nbsp;&nbsp;&nbsp;</th>')
+                                              ';">&nbsp;&nbsp;&nbsp;</th>\n')
                     }
                     if (j<ncol(heading)) {
                         if (heading[i,j+1] == "="){
@@ -408,14 +391,15 @@ tableReheading <- function(dataset, # the dataset to draw table
             }
         }
         for (i in 1:nrow(heading)){
-            rehead <- paste0(rehead,'<tr>',paste0(dthead[i,],collapse=""),'</tr>',
-                             collapse="")
+            rehead <- paste0(rehead,'\n  <tr>\n', paste0(dthead[i,],collapse=""),
+                             '  </tr>\n', collapse="")
         }
         rehead <- paste0(rehead,'</thead>')
-        rehead <- gsub('<thead>.+</thead>',rehead,htmltable)
+        rehead <- gsub('<thead>.+</thead>', rehead, htmltable)
         class(rehead) <- class(htmltable)
         attributes(rehead) <- attributes(htmltable)
-        return(sub('<table',paste0('<table width=',as.character(tableWidth)),rehead))
+        return(sub('<table', paste0('<table width=', as.character(tableWidth)),
+                   rehead))
     }
 }
 #------------percent format---------------
@@ -525,17 +509,23 @@ tooltipJS <- function(type){
 #' @param x1 Backup x variable, only for line-marking map, force andchord chart.
 #' @param xcoord1 Backup lattitude variable, only for line-marking map.
 #' @param ycoord1 Backup Longitude variable, only for line-marking map.
-#' @param type options 'scatter', 'bubble', 'bar', 'line', 'linesmooth', 'map',
-#' 'k', 'pie', 'ring', 'rose','area', 'areasmooth', 'chordribbon', 'chord', 'force',
-#' 'tree', 'treemap', 'wordcloud', 'heatmap', 'histogram', 'funnel', 'pyramid',
-#' 'radar', 'radarfill'
+#' @param type options \code{'scatter', 'point', 'bubble', 'bar', 'line', 'map',
+#' 'k', 'pie', 'ring', 'rose','area', 'chord', 'force', 'tree', 'treemap',
+#' 'wordcloud', 'heatmap', 'histogram', 'funnel', 'pyramid', 'radar'} \cr
 #' \itemize{
-#'   \item If 'map' was chosen, the control option should be a vector of length 3:
-#'   \code{c('map',mapType,markType)}. \code{mapType} could be either 'world' or 'china',
+#'   \item If 'map' is chosen, the control option should be a vector of length 3:
+#'   \code{c('map', mapType, markType)}. \code{mapType} could be either 'world' or 'china',
 #'   of which simplified Chinese names are required for 'china'.
 #'   When markType equals to 'area', the function colors polygons to show the effects;
 #'   while equals to 'point', it ticks pins on the map; while equals to 'line',
 #'   it ticks lines on the map.
+#'   \item If 'line', 'area' are chosen, the control option should be a vector of
+#'   length 2: \code{c(main type, type feature)}. \code{main type} is line or area,
+#'   \code{type feature} is 'smooth'.
+#'   \item If 'chord' is chosen, the control option should be a vector of
+#'   length 2: \code{c('chord', 'riboon')}, which refers to chord chart with ribbon.
+#'   \item If 'radar' is chosen, the control option should be a vector of
+#'   length 2: \code{c('radar', 'fill')}, which refers to radar chart with color filled.
 #' }
 #' @param stack Default to FALSE (do not stack). Used in stacked column, bar, line
 #' and area chart, etc.
@@ -547,50 +537,50 @@ tooltipJS <- function(type){
 #' If the length of the symbols array is smaller than number of levels of the series,
 #' the last symbol will be used to extend the array. If you set symbolList NULL or
 #' leave it unset, the function circulates the default symbol list of Echarts:
-#' c('circle', 'rectangle', 'triangle', 'diamond', 'emptyCircle', 'emptyRectangle',
-#' 'emptyTriangle', 'emptyDiamond'). You can also assign non-standard symbols,
-#' such as 'heart','droplet','pin','arrow','star5','star6', 'star7', etc.
+#' \code{c('circle', 'rectangle', 'triangle', 'diamond', 'emptyCircle', 'emptyRectangle',
+#' 'emptyTriangle', 'emptyDiamond')}. You can also assign non-standard symbols,
+#' such as \code{'heart', 'droplet', 'pin', 'arrow', 'star5', 'star6', 'star7'}, etc.
 #' When assigned to 'none', no symbols are shown.
-#' @param dataZoom If dataZoom=TRUE, the default range is 0-100%.
+#' @param dataZoom If dataZoom=\code{TRUE}, the default range is 0-100.
 #' You can assign a vector with length of 2 to dataZoom to control the initial range.
-#' E.g.,c(30,70) means from 30% to 70% at the initial view.
-#' @param dataRange The range to zoom the data. Default to FALSE.
-#' Set dataRange=c(High value label,Low value label) to enable dataRange.
+#' E.g.,c(30,70) means from 30 to 70 percent at the initial view.
+#' @param dataRange The range to zoom the data. Default FALSE.
+#' Set dataRange=\code{c(High value label, Low value label)} to enable dataRange.
 #' @param splitNumber When dataRange is on, assign splitNumber to cut the range
 #' into discrete sections. Default to 0 (continuous range). In histogram,
 #' if splitNumber is set, the y variable will be cut into splitNumber groups.
 #' @param dataRangePalette You can independently assign palettes to dataRange
-#' (similar to overall palette). Default to NULL (applies echarts defaults).
+#' (similar to overall palette). Default NULL (applies echarts defaults).
 #' @param xlab You can also omit xAxis, directly assign xAxis title.
 #' xlab has a higher priority than xAxis[['lab']].
-#' @param xAxis x Axis parameters in a list, default to
-#' list(lab=NULL, color=NULL, splitLine=TRUE, banded=FALSE, rotate=0).
+#' @param xAxis x Axis parameters in a list, default
+#' \code{list(lab=NULL, color=NULL, splitLine=TRUE, banded=FALSE, rotate=0)}.
 #' @param ylab You can also omit yAxis, directly assign yAxis title.
 #' ylab has a higher priority than yAxis[['lab']].
 #' @param yAxis parameters of y Axis. Refer to xAxis.
 #' @param xlab1 Title of secondary x-axis, with higher priority than lab in xAxis1 list,
 #' @param xAxis1 Secondary x axis, effecitve only if there are multiple series.
-#' Written in a list, default to list(lab=NULL, series=NULL, reverse=FALSE,
-#' color=NULL, splitLine=TRUE, banded=FALSE, rotate=0).
+#' Written in a list, default \code{list(lab=NULL, series=NULL, reverse=FALSE,
+#' color=NULL, splitLine=TRUE, banded=FALSE, rotate=0)}.
 #' series set which series to put on secondary x-axis, which can be either a name
 #' vector or an index vector, e.g., c(1,2) or c('male','female').
 #' The data is fliped up when reverse is set TRUE.
 #' @param ylab1 Title of secondary y-axis, with higher priority than lab in yAxis1 list,
 #' @param yAxis1 Refer to xAxis1
-#' @param xyflip Flip x,y-axies. Default to FALSE.
-#' @param AxisAtZero Axes cross at zero. Default to c(FALSE, FALSE).
-#' @param scale Rescale the axes based on min and max values. Default to TRUE.
-#' @param palette Overall palette. Default to 'aetnagreen'. \cr
-#' Palette names:
+#' @param xyflip Flip x, y-axies. Default FALSE.
+#' @param AxisAtZero Axes (and sub axes) cross at zero. Default \code{c(FALSE, TRUE)}.
+#' @param scale Rescale the axes based on min and max values. Default TRUE.
+#' @param palette Overall palette. Default NULL (echarts defaults). \cr
+#' Palette names: \cr
 #' \itemize{
 #'  \item Aetna palettes: Including 'aetnagreen', 'aetnablue', 'aetnaviolet',
 #'  'aetnaorange', 'aetnateal', 'aetnacranberry' \cr
-#'  \item RColorBrewer palettes: Including 'BrBG', 'PiYG', 'PRGn', 'PuOr', 'RdBu',
+#'  \item \link{RColorBrewer} palettes: Including 'BrBG', 'PiYG', 'PRGn', 'PuOr', 'RdBu',
 #'  'RdGy', 'RdYlBu', 'RdYlGn', 'Spectral', 'Accent', 'Dark2', 'Paired', 'Pastel1',
 #'  'Pastel2', 'Set1', 'Set2', 'Set3', 'Blues', 'BuGn', 'BuPu', 'GnBu', 'Greens',
 #'  'Greys', 'Oranges', 'OrRd', 'PuBu', 'PuBuGn', 'PuRd', 'Purples', 'RdPu', 'Reds',
 #'  'YlGn', 'YlGnBu', 'YlOrBr', 'YlOrRd' \cr
-#'  \item ggthemes palettes: 'calc', 'economist', 'economist_white', 'economist_stata',
+#'  \item \link{ggthemes} palettes: 'calc', 'economist', 'economist_white', 'economist_stata',
 #'  'excel', 'exel_fill', 'excel_old', 'excel_new', 'few', 'fivethirtyeight',
 #'  'gdocs', 'pander', 'tableau', 'stata', 'stata1','stata1r','statamono',
 #'  'tableau20', 'tableau10medium', 'tableaugray', 'tableauprgy', 'tableaublrd',
@@ -601,23 +591,23 @@ tooltipJS <- function(type){
 #'  'wsj_black_green', 'wsj_dem_rep', 'colorblind', 'trafficlight' \cr
 #'  \item Other palettes: 'rainbow', 'terrain', 'topo', 'heat', 'cm'
 #' }
-#' \cr Usage:
+#' Usage: \cr
 #' \itemize{
 #'  \item Do not set the value and function defaults will be loaded \cr
 #'  \item Set palette=NULL to use Echarts defaults \cr
 #'  \item Set palette=palette name to assign any palette listed above \cr
-#'  \item Set palette=palette name(number) to restrict number of colors within the
-#'  palette (e.g., palette='calc(3)' picks 3 colors out of 'calc' RANDOMLY) \cr
-#'  \item Set palette=c(color1,color2,color3,...) to define a palette vector,
-#'  made of which either color names or Hex expressions. Use colors() to check
-#'  available color names and check the effects using demo(colors).
+#'  \item Set palette=\code{palette name(number)} to restrict number of colors within the
+#'  palette (e.g., \code{palette='calc(3)'} picks 3 colors out of 'calc' RANDOMLY) \cr
+#'  \item Set palette=\code{c(color1, color2, color3, ...)} to define a palette vector,
+#'  made of which either color names or Hex expressions. Use \code{\link{colors}()} to check
+#'  available color names and check the effects using \code{demo(colors)}.
 #' }
-#' @param tooltip Mouse tip effects swtich. Default to TRUE.
+#' @param tooltip Mouse tip effects swtich. Default TRUE.
 #' @param legend Whether to show the legend. Default to TRUE. Can also be a list
-#' length 2: list(mode='single/multiple',select=vector(...)). E.g.,
-#' list(mode='single',select='Male') means singular choice, with series 'Male'
+#' length 2: \code{list(mode='single/multiple', select=vector(...))}. E.g.,
+#' \code{list(mode='single', select='Male')} means singular choice, with series 'Male'
 #' selected at the initial view. legend=FALSE closes legend.
-#' @param toolbox Echarts Tool box switch. Default to TRUE.
+#' @param toolbox Echarts Tool box switch. Default TRUE.
 #' @param pos Position of image elements which are integers 1-12.
 #' Title position default to 6 (o'clock), which means bottom middle.
 #' Defaults to legend, toolbox, dataRange, dataZoom, roamController are
@@ -625,69 +615,75 @@ tooltipJS <- function(type){
 #' dataZoom=6, dataRange=8, roam=2)
 #' @param calculable Calculable switch (Echarts patent).
 #' @param asImage renderAsImage switch.Deafult to FALSE.
-#' @param markLine Short form ：
-#' \tabular(llll){
-#' series name/index * \tab line name \tab Line type \tab Light effect \cr
-#' String or number \tab String / NA \tab min/max/average/lm \tab TRUE / FALSE
+#' @param markLine Short form: \cr
+#' \tabular{llll}{
+#'  [col 1] series name|index \tab [col 2] line name \tab [col 3] Line type
+#'  \tab [col 4] Light effect \cr
+#'  String or number \tab String|NA \tab min|max|average|lm \tab TRUE|FALSE
 #' }
-#' Full form : \cr
-#' \tabular(llllllll){
-#' series name/index * \tab line name \tab Value \tab P0 x \tab P0 y \tab P1 x
-#' \tab P1 y \tab Light effect \cr
-#' String or number \tab String/NA \tab num	\tab x val \tab y val \tab x val
-#' \tab y val \tab TRUE / FALSE
+#' Full form: \cr
+#' \tabular{llllllll}{
+#'  [col 1] series name|index \tab [col 2] line name \tab [col 3] Value
+#'  \tab [col 4] P0 x \tab [col 5] P0 y \tab [col 6] P1 x \tab [col 7] P1 y
+#'  \tab [col 8] Light effect \cr
+#'  String|number \tab String|NA \tab num \tab x val \tab y val \tab x val
+#'  \tab y val \tab TRUE|FALSE
 #' }
-#' Examples: \cr
+#' Examples:
 #' \itemize{
-#'  \item E.g., both t(c('male',NA,'average',F)) and t(c(1,NA,'average',F)) refer to
-#'  an average markline of the series 'male', only available for line, linesmooth,
-#'  bar, scatter, bubble charts. 'lm' refers to linear regresson markline which is
-#'  only available for scatters and bubbles. t(c(1,NA,'average',T)) opens light effects
-#'  of series 'male'. \cr
+#'  \item E.g., both \code{t(c('male', NA, 'average', FALSE))} and \code{t(c(1, NA, 'average', FALSE))}
+#'  refer to an average markline of the series 'male', only available for line,
+#'  linesmooth, bar, scatter, bubble charts. 'lm' refers to linear regresson
+#'  markline which is only available for scatters and bubbles.
+#'  \code{t(c(1, NA, 'average', TRUE))} opens light effects of series 'male'. \cr
 #'  \item In line, bar, k and scatter charts, 'P0 x','P0 y','P1 x','P1 y' are
 #'  comprehended as coordinates. In map charts, these coordinates should be lattitudes
-#'  and longitudes. t(c('male',NA,100,0,5,100,5,T)) opens light effects of series 'male'.
+#'  and longitudes. \code{t(c('male', NA, 100, 0, 5, 100, 5, TRUE))} opens light effects of series 'male'.
 #' }
 #' @param markLinesmooth Used this instead of markLine for smooth marklines with
 #' totally identical grammar.
 #' @param markPoint Show markpoints, default to NULL.
 #' The grammar is a data.frame or matrix with 4 or 6 columns:
-#' Short form ：\cr
-#' \tabular{
-#' series name/index * \tab Point name \tab Point type \tab Light effect \cr
-#' String or number \tab String / NA \tab min/max \tab TRUE / FALSE
-#' }
+#' Short form: \cr
+#' \tabular{llll}{
+#'  <col 1> series name|index \tab <col 2> Point name \tab <col 3> Point type \tab <col 4> Light effect \cr
+#'  String or number \tab String|NA \tab min|max \tab TRUE|FALSE
+#'  }
 #' Full form: \cr
-#' \tabular{
-#' series name/index *	\tab Point name	\tab Value	\tab P x \tab P y
-#' \tab Light effect \cr
-#' String or number	\tab String / NA	\tab num	\tab x val	\tab y val	\tab
-#' TRUE / FALSE
+#' \tabular{llllll}{
+#'  [col 1] series name|index \tab [col 2] Point name \tab [col 3] Value \tab [col 4] P x
+#'  \tab [col 5] P y \tab [col 6] Light effect \cr
+#'  String or number \tab String|NA \tab num \tab x val \tab y val \tab TRUE|FALSE
 #' }
 #' Examples: \cr
 #' \itemize{
-#'  \item E.g., both t(c('male',NA,'min',F)) and t(c(1,NA,'min',F)) refer to a
-#'  min markpoint of the series 'male', only available for line, linesmooth, bar,
-#'  scatter, bubble charts. t(c('male',NA,'min',T)) opens light effects of series 'male'.
+#'  \item E.g., both \code{t(c('male',NA,'min',FALSE))} and \code{t(c(1,NA,'min',FALSE))} refer
+#'  to a min markpoint of the series 'male', only available for line, linesmooth, bar,
+#'  scatter, bubble charts. \code{t(c('male',NA,'min',TRUE))} opens light effects of series 'male'.
 #'  \item In line, bar, k and scatter charts, 'P x','P y',... are comprehended
 #'  as coordinates. In map charts, these coordinates should be lattitudes and longitudes.
-#'  t(c('male',NA,100,0,5,T)) opens light effects of series 'male'.
+#'  \code{t(c('male',NA,100,0,5,TRUE))} opens light effects of series 'male'.
 #' }
-#' @param theme Default theme=list(backgroundColor=color name/value,
-#' borderColor=color name/value, borderWidth=1)
-#' @param ... ellipsis
+#' @param theme Default theme=\code{list(backgroundColor=color name/value,
+#' borderColor=color name/value, borderWidth=1)}
+#' @param ... elipsis
 #'
 #' @return An echart object
-#' @import Hmisc plyr reshape2
+#' @import Hmisc
+#' @importFrom reshape2 dcast
+#' @importFrom plyr join
 #' @export
 #'
+#' @seealso \code{\link{ggthemes}} \code{\link{RColorBrewer}} \code{\link{echart}}
 #' @examples
 #' \dontrun{
 #' echartR(iris, x=Sepal.Width, y=Petal.Width, series=Species, type='scatter')
+#'
+#' echartR(iris, x=~Sepal.Width, y=~Petal.Width, series=~Species)
 #' }
 echartR<-function(data, x=NULL, y, z=NULL, series=NULL, weight=NULL,
                   xcoord=NULL, ycoord=NULL, x1=NULL, xcoord1=NULL, ycoord1=NULL,
-                  type="scatter", stack=FALSE,
+                  type="auto", stack=FALSE,
                   title=NULL, subtitle=NULL, title_url=NULL, subtitle_url=NULL,
                   symbolList=NULL, dataZoom=NULL,
                   dataRange=NULL, splitNumber=NULL, dataRangePalette=NULL,
@@ -700,74 +696,55 @@ echartR<-function(data, x=NULL, y, z=NULL, series=NULL, weight=NULL,
                                           rotate=0),
                   ylab1=NULL, yAxis1=list(lab=ylab1, series=NULL, reverse=FALSE,
                                           color=NULL, splitLine=TRUE,
-                              banded=FALSE,rotate=0),
+                              banded=FALSE, rotate=0),
                   xyflip=FALSE, AxisAtZero=c(FALSE,TRUE), scale=TRUE,
-                  palette='aetnagreen', tooltip=TRUE, legend=TRUE, toolbox=c(TRUE,'cn'),
+                  palette=NULL, tooltip=TRUE, legend=TRUE, toolbox=c(TRUE,'cn'),
                   pos=list(title=6, legend=11, toolbox=1, dataZoom=6,
                            dataRange=8, roam=2),
                   calculable=TRUE, asImage=FALSE,
-                  markLine=NULL, markLinesmooth=NULL, markPoint=NULL,
+                  markLine=markLinesmooth, markLinesmooth=NULL, markPoint=NULL,
                   theme=list(backgroundColor=NULL, borderColor=NULL,
                              borderWidth=1, width=NULL, height=NULL),
                   ...){
-    type <- tolower(type)
-    supportedTypes <- c('scatter', 'bar', 'line', 'linesmooth', 'map', 'k', 'pie',
-                        'ring', 'rose', 'chordribbon', 'chord', 'area', 'areasmooth',
-                        'force', 'bubble', 'funnel', 'pyramid', 'tree','treemap',
-                        'wordcloud', 'heatmap', 'histogram', 'radar', 'radarfill',
-                        'gauge'
-    )
-    if (!type[1] %in% supportedTypes){
-        stop("The chart type is not supported! ",
-             "we now only support the following charts:\n",
-             supportedTypes)
-    }
-<<<<<<< HEAD
-=======
-    loadpkg("Hmisc")
-    loadpkg("plyr")
-    loadpkg("reshape2")
-    loadpkg("recharts","yihui/recharts")
->>>>>>> bc43ebcb4f120d09a7632eed3ef8d18931ed0ac3
 
-    #-----transform var to class(name)-----------
-    x <- substitute(x); y <- substitute(y); z <- substitute(z); x1<- substitute(x1)
-    series <- substitute(series); weight <- substitute(weight)
-    xcoord <- substitute(xcoord); ycoord <- substitute(ycoord)
-    xcoord1 <- substitute(xcoord1); ycoord1 <- substitute(ycoord1)
-    vArgs <- list(x=x,y=y,z=z,x1=x1,series=series,weight=weight,xcoord=xcoord,
-                    ycoord=ycoord,xcoord1=xcoord1,ycoord1=ycoord1)
-    for (v in names(vArgs)){
-        if (inherits(vArgs[[v]],"name")) vArgs[[v]] <- deparse(vArgs[[v]])
-        else if (inherits(vArgs[[v]],"call"))
-            vArgs[[v]] <- gsub("^.*~(.+)$","\\1",deparse(vArgs[[v]]))
+    #--------recognize variable names--------------------------
+    vArgs <- list(x=substitute(x), y=substitute(y), z=substitute(z),
+                  x1=substitute(x1), series=substitute(series),
+                  weight=substitute(weight), xcoord=substitute(xcoord),
+                  ycoord=substitute(ycoord), xcoord1=substitute(xcoord1),
+                  ycoord1=substitute(ycoord1))
+    .getArgTag <- function(v){
+        if (inherits(v, 'character')) return(v)
+        else if (inherits(v, "name")) return(deparse(v))
+        else if (inherits(v, c("call", "formula")))
+            return(gsub("^.*~(.+)$", "\\1", deparse(v)))
+    }
+    vArgs <- lapply(vArgs, .getArgTag)
+
+    #---------if there is timeline, loop over z-------------
+    if (!is.null(vArgs$z)) {
+        zvar <- vArgs$z
+        z <- data[,zvar]
+        timeslice <- unique(z)
     }
 
-    #-------if there is timeline, loop over z---------
+    #-----------variables----------------
     Data <- data
     MarkLine <- markLine
     MarkPoint <- markPoint
-    if (!is.null(substitute(z))) {
-        #zvar <- substr(deparse(z),2,nchar(deparse(z)))
-        zvar <- vArgs[['z']]
-        z <- Data[,zvar]
-        timeslice <- unique(z)
-    }
-    #----data preProcess-----------
-    if (!is.null(substitute(y))) yvar <- vArgs[['y']]
-        #yvar <- substr(deparse(y),2,nchar(deparse(y)))
-    if (!is.null(substitute(x))) {
-        #xvar <- substr(deparse(x),2,nchar(deparse(x)))
-        xvar <- vArgs[['x']]
+    yvar <- vArgs$y
+    if (!is.null(vArgs$x)) {
+        xvar <- vArgs$x
+        ## get x levels
         if (is.factor(data[,xvar])) {
             lvlx <- levels(data[,xvar])
         }else if (is.character(data[,xvar])){
             lvlx <- unique(data[,xvar])
         }
     }
-    if (!is.null(substitute(series))) {
-        #svar <- substr(deparse(series),2,nchar(deparse(series)))
-        svar <- vArgs[['series']]
+    if (!is.null(vArgs$series)) {
+        svar <- vArgs$series
+        ## get series levels
         if (is.factor(data[,svar])){
             lvlseries <- levels(data[,svar])
         }else{
@@ -776,25 +753,34 @@ echartR<-function(data, x=NULL, y, z=NULL, series=NULL, weight=NULL,
     }else{
         lvlseries <- NULL
     }
+
+    #---------define graph type--------------
+    type <- tolower(type)
+    if (type == 'auto') type <- determineType(data[,xvar], data[,yvar])
+    supportedTypes <- c(
+        'scatter', 'bar', 'line', 'map', 'k', 'pie', 'ring', 'rose', 'chord',
+        'area', 'force', 'bubble', 'funnel', 'pyramid', 'tree', 'treemap',
+        'wordcloud', 'heatmap', 'histogram', 'radar', 'gauge'
+    )
+    if (!type[1] %in% supportedTypes){
+        stop("The chart type is not supported! ",
+             "we now only support the following charts:\n",
+             supportedTypes)
+    }
+
+    #----data preProcess-----------
     for (var in names(Data)){  # transform all factors to char
         if (is.factor(Data[,var])) Data[,var]<-as.character(Data[,var])
     }
-    if (!is.null(substitute(weight))) #wvar <- substr(deparse(weight),2,nchar(deparse(weight)))
-        wvar <- vArgs[['weight']]
-    if (!is.null(substitute(xcoord))) #xcoordvar <- substr(deparse(xcoord),2,nchar(deparse(xcoord)))
-        xcoordvar <- vArgs[['xcoord']]
-    if (!is.null(substitute(x1))) #xvar1 <- substr(deparse(x1),2,nchar(deparse(x1)))
-        xvar1 <- vArgs[['x1']]
-    if (!is.null(substitute(xcoord1))) #xcoordvar1 <- substr(deparse(xcoord1),2,nchar(deparse(xcoord1)))
-        xcoordvar1 <- vArgs[['xcoord1']]
-    if (!is.null(substitute(ycoord))) #ycoordvar <- substr(deparse(ycoord),2,nchar(deparse(ycoord)))
-        ycoordvar <- vArgs[['ycoord']]
-    if (!is.null(substitute(ycoord1))) #ycoordvar1 <- substr(deparse(ycoord1),2,nchar(deparse(ycoord1)))
-        ycoordvar1 <- vArgs[['ycoord1']]
-    if (!is.null(markLinesmooth)) markLine <- markLinesmooth
+    if (!is.null(vArgs$weight))  wvar <- vArgs$weight
+    if (!is.null(vArgs$xcoord))  xcoordvar <- vArgs$xcoord
+    if (!is.null(vArgs$x1))      xvar1 <- vArgs$x1
+    if (!is.null(vArgs$xcoord1)) xcoordvar1 <- vArgs$xcoord1
+    if (!is.null(vArgs$ycoord))  ycoordvar <- vArgs$ycoord
+    if (!is.null(vArgs$ycoord1)) ycoordvar1 <- vArgs$ycoord1
 
-    if (type[1] %in% c('line','linesmooth','scatter','bubble','area','areasmooth',
-                       'bar')){       # only these charts can use double axes
+    if (type[1] %in% c('line','scatter','point','bubble','area','bar')){
+        # only these charts can use double axes
         xAxis1 <- mergeList(list(lab=xlab1,series=NULL,reverse=FALSE,color=NULL,
                                  splitLine=TRUE,banded=FALSE,rotate=0), xAxis1)
         yAxis1 <- mergeList(list(lab=ylab1,series=NULL,reverse=FALSE,color=NULL,
@@ -862,16 +848,16 @@ echartR<-function(data, x=NULL, y, z=NULL, series=NULL, weight=NULL,
     for (t in 1:ifelse(is.null(z),1,length(timeslice)))  {
 
         #-------pre-process of data-----------
-        if (!is.null(z)) data <- Data[Data[,zvar]==timeslice[t],]
-        if (!is.null(y)) y <- data[,yvar]
-        if (!is.null(x)) x <- data[,xvar]
-        if (!is.null(series)) series <- data[,svar]
-        if (!is.null(weight)) weight <- data[,wvar]
-        if (!is.null(xcoord)) xcoord <- data[,xcoordvar]
-        if (!is.null(x1)) x1 <- data[,xvar1]
-        if (!is.null(xcoord1)) xcoord1 <- data[,xcoordvar1]
-        if (!is.null(ycoord)) ycoord <- data[,ycoordvar]
-        if (!is.null(ycoord1)) ycoord1 <- data[,ycoordvar1]
+        if (!is.null(vArgs$z)) data <- Data[Data[,zvar]==timeslice[t],]
+        if (!is.null(vArgs$y)) y <- data[,yvar]
+        if (!is.null(vArgs$x)) x <- data[,xvar]
+        if (!is.null(vArgs$series)) series <- data[,svar]
+        if (!is.null(vArgs$weight)) weight <- data[,wvar]
+        if (!is.null(vArgs$xcoord)) xcoord <- data[,xcoordvar]
+        if (!is.null(vArgs$x1)) x1 <- data[,xvar1]
+        if (!is.null(vArgs$xcoord1)) xcoord1 <- data[,xcoordvar1]
+        if (!is.null(vArgs$ycoord)) ycoord <- data[,ycoordvar]
+        if (!is.null(vArgs$ycoord1)) ycoord1 <- data[,ycoordvar1]
         if (type[1] %in% c('bubble') & is.null(weight)){
             wvar <- yvar
             weight <- y
@@ -954,31 +940,30 @@ echartR<-function(data, x=NULL, y, z=NULL, series=NULL, weight=NULL,
         if (is.null(palette)){
             lstColor <- as.list(funcPal(NULL))
         }else{
-            nColor <- as.numeric(unlist(strsplit(palette,"[\\(\\)]",perl=TRUE))[2])
-            if (!is.na(nColor) & nColor < ifelse(is.null(series),1,length(lvlseries))){
-                palette <- unlist(strsplit(palette,"[\\(\\)]",perl=TRUE))[1]
+            nColor <- as.numeric(unlist(strsplit(palette, "[\\(\\)]", perl=TRUE))[2])
+            if (!is.na(nColor) && nColor < ifelse(is.null(series), 1, length(lvlseries))){
+                palette <- unlist(strsplit(palette,"[\\(\\)]", perl=TRUE))[1]
             }
             lstColor <- as.list(funcPal(palette))
         }
 
         #--------Title and subtitle--------
-        lstTitle=list()
-        lstTitle <- list(text=ifelse(is.null(title),"",title),
-                         subtext=ifelse(is.null(subtitle),"",subtitle))
-        lstTitle[['x']] <- vecPos(pos[['title']])[1]
-        lstTitle[['y']] <- vecPos(pos[['title']])[2]
-        lstTitle[['orient']] <- vecPos(pos[['title']])[3]
-        if (!is.null(title_url)) lstTitle[['link']] <- title_url
-        if (!is.null(subtitle_url)) lstTitle[['sublink']] <- subtitle_url
-        if (!is.null(z)) lstTitle[['text']] <-
-            paste0(lstTitle[['text']], " (",zvar," = ",timeslice[t],")")
+        if (! all(is.null(c(title, subtitle, title_url, subtitle_url)))){
+            lstTitle <- setTitle(
+                ifelse(is.null(z), title,
+                       paste0(ifelse(is.null(title), "", title), " (", zvar,
+                              " = ", timeslice[t],")")),
+                title_url, subtitle, subtitle_url, pos=pos$title)
+        } else{
+            lstTitle <- list()
+        }
 
         #-------Tooltip--------------
         if (tooltip){
             lstTooltip <- list(
                 trigger = ifelse(type[1] %in% c('pie','ring','funnel','pyramid','map',
-                                              'rose','wordcloud','radar','radarfill',
-                                              'chord','chordribbon','force','gauge'),
+                                              'rose','wordcloud','radar',
+                                              'chord','force','gauge'),
                                'item','axis'),
                 axisPointer = list(
                     show = TRUE,lineStyle = list(type = 'dashed',width = 1)
@@ -993,7 +978,7 @@ echartR<-function(data, x=NULL, y, z=NULL, series=NULL, weight=NULL,
                     lstTooltip[['formatter']] <- JS(tooltipJS('scatter'))
                 }
                 lstTooltip[['axisPointer']] <- list(
-                    show= T,type='cross',lineStyle= list(type= 'dashed',width= 1)
+                    show= TRUE,type='cross',lineStyle= list(type= 'dashed',width= 1)
                 )
             }else if (type[1] %in% c('ring','pie')){
                 lstTooltip[['formatter']] <- tooltipJS('pie')
@@ -1013,71 +998,10 @@ echartR<-function(data, x=NULL, y, z=NULL, series=NULL, weight=NULL,
         }
 
         #-------------Toolbox----------------
-        if (toolbox[1]){
-            lstToolbox= list(
-                show = TRUE,
-                feature = list(
-                    mark =list(show= TRUE),
-                    dataZoom = list(show=TRUE),
-                    dataView = list(show= TRUE, readOnly= FALSE),
-                    magicType = list(show=FALSE),
-                    restore = list(show= TRUE),
-                    saveAsImage = list(show= TRUE)
-                )
-            )
-            if (tolower(toolbox[2]!='cn')){
-                lstToolbox$feature <- list(
-                    mark =list(show= TRUE,
-                               title=list(mark="Apply Auxiliary Conductor",
-                                          markUndo="Undo Auxiliary Conductor",
-                                          markClear="Clear Auxiliary Conductor")),
-                    dataZoom = list(show=TRUE, title=
-                                        list(dataZoom="Data Zoom",
-                                             dataZoomReset="Reset Data Zoom")),
-                    dataView = list(show= TRUE, readOnly= FALSE,
-                                    title="Data View"),
-                    magicType = list(show=FALSE),
-                    restore = list(show= TRUE,title="Restore"),
-                    saveAsImage = list(show= TRUE,title="Save As Image")
-                )
-            }
-
-            lstToolbox[['x']] <- vecPos(pos[['toolbox']])[1]
-            lstToolbox[['y']] <- vecPos(pos[['toolbox']])[2]
-            lstToolbox[['orient']] <- vecPos(pos[['toolbox']])[3]
-
-            if (type[1] %in% c('line','linesmooth','bar','area','areasmooth','k',
-                               'histogram')){
-                lstToolbox[['feature']][['magicType']] <-
-                    list(show=TRUE, type= c('line','bar','tiled','stack'))
-            }else if (type[1] %in% c('ring','pie','rose')){
-                lstToolbox[['feature']][['magicType']] <-
-                    list(show=TRUE, type= c('pie','funnel'),
-                         option=list(funnel=list(x='25%',width='80%',
-                                                 funnelAlign='center')))
-            }else if (type[1] %in% c('force','chord','chordribbon')){
-                lstToolbox[['feature']][['magicType']] <-
-                    list(show=TRUE, type= c('force','chord'))
-                lstToolbox[['feature']][['dataView']]<-list(show=FALSE)
-                lstToolbox[['feature']][['dataZoom']]<-list(show=FALSE)
-            }
-            if (lstToolbox[['feature']][['magicType']][['show']]){
-                if (tolower(toolbox[2]!='cn')){
-                    lstToolbox[['feature']][['magicType']][['title']] <- list(
-                        line="Switch to Line Chart",
-                        bar="Switch to Bar Chart",
-                        stack="Stack",
-                        tiled="Tiled",
-                        force="Switch to Force Chart",
-                        chord="Switch to Chord Chart",
-                        pie="Switch to Pie Chart",
-                        funnel="Switch to Funnel Chart"
-                    )
-                }
-            }
-        }else{
-            lstToolbox=list(show=FALSE)
-        }
+        lstToolbox <- setToolbox(toolbox=toolbox, type=type,
+                                 show=c('mark', 'dataZoom', 'dataView',
+                                        'magicType', 'restore', 'saveAsImage'),
+                                 pos=pos$toolbox)
 
         #----------dataZoom----------
         lstdataZoom <- NULL
@@ -1306,11 +1230,7 @@ echartR<-function(data, x=NULL, y, z=NULL, series=NULL, weight=NULL,
                 tmpYAxis[['max']] <- 1
                 tmpYAxis[['min']] <- 0
             }
-<<<<<<< HEAD
 
-=======
-            
->>>>>>> bc43ebcb4f120d09a7632eed3ef8d18931ed0ac3
             if (!is.null(varYAxis[['reverse']])){
                 if (varYAxis[['reverse']]) {
                     if (is.null(tmpYAxis[['axisLabel']])) tmpYAxis[['axisLabel']] <- list()
@@ -2430,6 +2350,7 @@ echartR<-function(data, x=NULL, y, z=NULL, series=NULL, weight=NULL,
                     series=lstSeries
                 ))
 
+
                 if (!is.null(asImage)) chartobj[[t]][['renderAsImage']] <- asImage
                 if (!is.null(lstbackgroundColor)) chartobj[[t]][['backgroundColor']] <-
                         lstbackgroundColor
@@ -2470,4 +2391,146 @@ echartR<-function(data, x=NULL, y, z=NULL, series=NULL, weight=NULL,
     if (!is.null(theme$width)) if (is.numeric(theme$width)) output$width <- theme$width
     if (!is.null(theme$height)) if (is.numeric(theme$height)) output$height <- theme$height
     if (all(is.na(Data[,yvar]))) return('') else return(output)
+}
+
+
+setTitle <- function(title=NULL, link=NULL,
+                     subtitle=NULL, sublink=NULL, pos=6, ...){
+
+    lstTitle <- list(text=ifelse(is.null(title), "", title),
+                     subtext=ifelse(is.null(subtitle), "", subtitle))
+    lstTitle[['x']] <- vecPos(pos)[1]
+    lstTitle[['y']] <- vecPos(pos)[2]
+    lstTitle[['orient']] <- vecPos(pos)[3]
+    if (!is.null(link)) lstTitle[['link']] <- link
+    if (!is.null(sublink)) lstTitle[['sublink']] <- sublink
+    # if (!is.null(z)) lstTitle[['text']] <-
+    #     paste0(lstTitle[['text']], " (",zvar," = ",timeslice[t],")")
+    return(lstTitle)
+}
+
+#' Add Title And Subtitle to Echarts
+#'
+#' When an echart object is generated, you can modify it by adding title and
+#' subtitles using %>%.
+#' @param chart \code{echart} object generated by \code{\link{echart}} or \code{\link{echartR}}
+#' @param title text of the title
+#' @param link link of the title
+#' @param subtitle text of the subtitle
+#' @param sublink link of the subtitle
+#' @param pos the clock-position of title (and subtitle), refert to \code{\link{rechart:::vecPos}}
+#' @param ... elipsis
+#'
+#' @return A modified echart object
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' g <- iris %>% echartR(x=Sepal.Width, y=Petal.Width, series=Species, type='scatter')
+#' g %>% addTitle(title='Iris', subtitle='by: Fisher')
+#' }
+addTitle <- function(chart, title=NULL, link=NULL,
+                     subtitle=NULL, sublink=NULL, pos=6, ...){
+    if (all(is.null(c(title, link, subtitle, sublink)))){
+        chart$x$title <- list()
+    }else{
+        chart$x$title <- setTitle(title, link, subtitle, sublink, pos)
+    }
+    return(chart)
+}
+
+setToolbox <- function(toolbox=c(TRUE,'cn'), type='auto',
+                       show=c('mark', 'dataZoom', 'dataView', 'magicType',
+                              'restore', 'saveAsImage'), pos=1, ...){
+    if (toolbox[1]){
+        lstToolbox= list(
+            show = TRUE,
+            feature = list(
+                mark =list(show = ifelse('mark' %in% tolower(show), TRUE, FALSE)),
+                dataZoom = list(show = ifelse('datazoom' %in% tolower(show),
+                                              TRUE, FALSE)),
+                dataView = list(show = ifelse('dataview' %in% tolower(show),
+                                              TRUE, FALSE),
+                                readOnly = FALSE),
+                magicType = list(show = FALSE),
+                restore = list(show = ifelse('restore' %in% tolower(show),
+                                             TRUE, FALSE)),
+                saveAsImage = list(show = ifelse('saveasimage' %in% tolower(show),
+                                                 TRUE, FALSE))
+            )
+        )
+        if (tolower(toolbox[2]!='cn')){
+            lstToolbox$feature$mark$title = list(
+                mark="Apply Auxiliary Conductor",
+                markUndo="Undo Auxiliary Conductor",
+                markClear="Clear Auxiliary Conductor")
+            lstToolbox$feature$dataZoom$title = list(
+                dataZoom="Data Zoom",
+                dataZoomReset="Reset Data Zoom")
+            lstToolbox$feature$dataView$title = list(dataView="Data View")
+            lstToolbox$feature$restore$title = list(restore="Restore")
+            lstToolbox$feature$saveAsImage$title = list(saveAsImage="Save As Image")
+        }
+        lstToolbox[['x']] <- vecPos(pos)[1]
+        lstToolbox[['y']] <- vecPos(pos)[2]
+        lstToolbox[['orient']] <- vecPos(pos)[3]
+
+        if (type[1] %in% c('auto','line','bar','area','k','histogram')){
+            lstToolbox[['feature']][['magicType']] <-
+                list(show=TRUE, type= c('line','bar','tiled','stack'))
+        }else if (type[1] %in% c('ring','pie','rose')){
+            lstToolbox[['feature']][['magicType']] <-
+                list(show=TRUE, type= c('pie','funnel'),
+                     option=list(funnel=list(x='25%', width='80%',
+                                             funnelAlign='center')))
+        }else if (type[1] %in% c('force','chord')){
+            lstToolbox[['feature']][['magicType']] <-
+                list(show=TRUE, type= c('force','chord'))
+            lstToolbox$feature$dataView <- list(show=FALSE)
+            lstToolbox$feature$dataZoom <- list(show=FALSE)
+        }
+        if (lstToolbox$feature$magicType$show){
+            if (tolower(toolbox[2] != 'cn')){
+                lstToolbox$feature[['magicType']][['title']] <- list(
+                    line   = "Switch to Line Chart",
+                    bar    = "Switch to Bar Chart",
+                    stack  = "Stack",
+                    tiled  = "Tiled",
+                    force  = "Switch to Force Chart",
+                    chord  = "Switch to Chord Chart",
+                    pie    = "Switch to Pie Chart",
+                    funnel = "Switch to Funnel Chart"
+                )
+            }
+        }
+    }else{
+        lstToolbox=list(show=FALSE)
+    }
+    return(lstToolbox)
+}
+
+#' Add Toolbox to Echarts
+#'
+#' When an echart object is generated, you can modify it by adding toolbox using %>%.
+#' @param chart \code{echart} object generated by \code{\link{echart}} or \code{\link{echartR}}
+#' @param toolbox A vector of length 2: \code{show or not, language}
+#' @param show which widgets to show. Default \code{'mark', 'dataZoom', 'dataView', 'magicType',
+#' 'restore', 'saveAsImage'}
+#' @param pos the clock-position of toolbox, refert to \code{\link{rechart:::vecPos}}
+#' @param ... elipsis
+#'
+#' @return A modified echart object
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' g <- iris %>% echartR(x=Sepal.Width, y=Petal.Width, series=Species, type='scatter')
+#' g %>% addToolbox(toolbox=c(TRUE,'en'))
+#' }
+addToolbox <- function(chart, toolbox=c(TRUE,'cn'),
+                       show=c('mark', 'dataZoom', 'dataView', 'magicType',
+                              'restore', 'saveAsImage'), pos=1, ...){
+    type <- chart$x$series[[1]]$type
+    chart$x$toolbox <- setToolbox(toolbox, show, pos)
+    return(chart)
 }

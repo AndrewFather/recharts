@@ -1,5 +1,5 @@
 ##----------pre-resiquite functions---------
-isDate <- function(x,format=NULL){
+isDate <- function(x, format=NULL){
     if (!is.null(format)){
         if (!is(try(as.Date(x),TRUE),"try-error")) TRUE else FALSE
     }else{
@@ -153,24 +153,48 @@ setPal <- function(palname,n=6){
         }
     }
 }
-rgba <- function(vecrgb){
+rgba <- function(vecrgb, ...){
+    if (is.matrix(vecrgb) && dim(vecrgb) == c(3,1)) vecrgb <- vecrgb[,1]
+    ## vecrgb is yielded from col2rgb()
+
     if (is.list(vecrgb)) rgb <- as.vector(unlist(vecrgb))
-    if (!is.vector(vecrgb)) stop("Must be a vector!")
+    if (length(vecrgb) == 1) vecrgb <- c(vecrgb, unlist(list(...)))
     if (min(vecrgb,na.rm=TRUE)<0 | max(vecrgb,na.rm=TRUE)>255) {
         stop("All elements should be numeric 0-255!")
     }
-    if (length(vecrgb[!is.na(vecrgb)])==3){
-        return(rgb(red=vecrgb[1],green=vecrgb[2],blue=vecrgb[3],max=255))
+    if (length(vecrgb[!is.na(vecrgb)]) == 3){
+        return(rgb(red=vecrgb[1], green=vecrgb[2], blue=vecrgb[3], max=255))
     }else if (length(vecrgb[!is.na(vecrgb)])==4){
         #return(rgb(red=vecrgb[1],green=vecrgb[2],blue=vecrgb[3],alpha=vecrgb[4],
         #           max=255))
         return(paste0('rgba(',vecrgb[1],',',vecrgb[2],',',vecrgb[3],',',
-                      as.numeric(vecrgb[4])/255,')'))
+                      as.numeric(ifelse(vecrgb[4]<=1, vecrgb[4], vecrgb[4]/255)),
+                      ')'))
     }else{
         stop("Must be of length 3 or 4!")
     }
 }
 
+#' Text Position and Direction
+#'
+#' Converts text postion from clock digits to c(x, y, direction) vector
+#' @param pos 1-12, clock digits.
+#'
+#' @return A vector of x-alignment, y-alignment and direction.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' vecPos(2) ## returns c("right", "top", "vertical")
+#' }
+#' @note
+#' # Postion of Clock Numbers 1-12 \cr
+#' \tabular{lllll}{
+#'  10(l, t, v) \tab 11(l, t, h) \tab 12(c, t, h) \tab 1(r, t, h) \tab 2(r, t, v) \cr
+#'  9(l, c, v) \tab \tab \tab \tab 3(r, c, v) \cr
+#'  8(l, b, v) \tab 7(l, b, h) \tab 6(c, b, h) \tab 5(r, b, h) \tab 4(r, b, v)
+#' }
+#'
 vecPos <- function(pos){
     TblPos=as.data.frame(rbind(c("right","top","horizontal"),
                                c("right","top","vertical"),
@@ -487,10 +511,6 @@ tooltipJS <- function(type){
 #' }
 #' @param stack Default to FALSE (do not stack). Used in stacked column, bar, line
 #' and area chart, etc.
-#' @param title title of the figure.
-#' @param subtitle subtitle of the figure.
-#' @param title_url url of the title
-#' @param subtitle_url url of the subtitle
 #' @param symbolList A vector assigning symbols. You can use an array of symbols.
 #' If the length of the symbols array is smaller than number of levels of the series,
 #' the last symbol will be used to extend the array. If you set symbolList NULL or
@@ -502,13 +522,6 @@ tooltipJS <- function(type){
 #' @param dataZoom If dataZoom=\code{TRUE}, the default range is 0-100.
 #' You can assign a vector with length of 2 to dataZoom to control the initial range.
 #' E.g.,c(30,70) means from 30 to 70 percent at the initial view.
-#' @param dataRange The range to zoom the data. Default FALSE.
-#' Set dataRange=\code{c(High value label, Low value label)} to enable dataRange.
-#' @param splitNumber When dataRange is on, assign splitNumber to cut the range
-#' into discrete sections. Default to 0 (continuous range). In histogram,
-#' if splitNumber is set, the y variable will be cut into splitNumber groups.
-#' @param dataRangePalette You can independently assign palettes to dataRange
-#' (similar to overall palette). Default NULL (applies echarts defaults).
 #' @param xlab You can also omit xAxis, directly assign xAxis title.
 #' xlab has a higher priority than xAxis[['lab']].
 #' @param xAxis x Axis parameters in a list, default
@@ -641,10 +654,7 @@ tooltipJS <- function(type){
 #' }
 echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
                   xcoord=NULL, ycoord=NULL, x1=NULL, xcoord1=NULL, ycoord1=NULL,
-                  type="auto", stack=FALSE,
-                  title=NULL, subtitle=NULL, title_url=NULL, subtitle_url=NULL,
-                  symbolList=NULL, dataZoom=NULL,
-                  dataRange=NULL, splitNumber=NULL, dataRangePalette=NULL,
+                  type="auto", stack=FALSE, symbolList=NULL, dataZoom=NULL,
                   xlab=NULL, xAxis=list(lab=xlab, color=NULL, splitLine=TRUE,
                                         banded=FALSE, rotate=0),
                   ylab=NULL, yAxis=list(lab=ylab, color=NULL, splitLine=TRUE,
@@ -847,23 +857,23 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
                 nbreaks=ifelse(splitNumber[1]==1,10,splitNumber[1]+1)
             }
             interval <- (max(y)-min(y)) / (nbreaks-1)
-            cut <- seq(from=min(y),to=max(y),length.out=nbreaks)
-            cut <- round(cut,ifelse(interval>1,1,1+ceiling(log10(1/interval))))
-            hist <- hist(data[,yvar],breaks=cut,plot=FALSE)
-            hist_def <- hist(y,breaks=nbreaks-1,plot=FALSE)
-            valRange <- max(hist_def$breaks)-min(hist_def$breaks)
+            cut <- seq(from=min(y),to=max(y), length.out=nbreaks)
+            cut <- round(cut,ifelse(interval>1, 1, 1+ceiling(log10(1/interval))))
+            hist <- hist(data[,yvar], breaks=cut, plot=FALSE)
+            hist_def <- hist(y, breaks=nbreaks-1, plot=FALSE)
+            valRange <- max(hist_def$breaks) - min(hist_def$breaks)
             x1 <- vector()
             for (i in 1:length(hist$breaks)-1){
-                x1[i] <- paste(hist$breaks[i],hist$breaks[i+1],sep="-")
+                x1[i] <- paste(hist$breaks[i], hist$breaks[i+1],sep="-")
             }
-            data <- data.frame(x=hist$mids,y=hist$counts,x1=x1)
+            data <- data.frame(x=hist$mids, y=hist$counts,x1=x1)
             xvar <- yvar; yvar <- "Freq"; xvar1 <- "Breaks"
             names(data) <- c(xvar,yvar,xvar1)
             x <- data[,xvar]; y <- data[,yvar]
-        }else if (type[1] %in% c('line','linesmooth')){
-            if (is.numeric(x)) {
-                data[,xvar] <- x <- as.character(x)
-            }
+        }else if (type[1] %in% c('line')){
+            # if (is.numeric(x)) {
+            #     data[,xvar] <- x <- as.character(x)
+            # }
         }else if (type[1] %in% c('force')){
             dtlink <- as.data.frame(matrix(unlist(strsplit(x,"/")),
                                            byrow=TRUE,nrow=nrow(data)),stringsAsFactors=FALSE)
@@ -890,7 +900,8 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
 
         #---------timeline--------------
         if (!is.null(z)){
-            lstTimeline <- list(data=timeslice,autoPlay=TRUE,playInterval=2000)
+            lstTimeline <- list(data=timeslice, autoPlay=TRUE, playInterval=2000)
+            attr(lstTimeline, 'sliceby') <- zvar
             if (!is.null(title) & pos[['title']] %in% 5:7) lstTimeline[['y2']] <- 50
             if (!is.null(dataZoom) & pos[['dataZoom']] %in% 5:7) {
                 lstTimeline[['y2']] <- ifelse(is.null(lstTimeline[['y2']]),0,
@@ -900,23 +911,12 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
 
         # -----Color--------
         if (is.null(palette)){
-            lstColor <- as.list(setColors(NULL))
+            lstColor <- as.list(getColors(NULL))
         }else{
             nColor <- as.numeric(unlist(strsplit(palette, "[\\(\\)]", perl=TRUE))[2])
             if (!is.na(nColor) && nColor < ifelse(is.null(series), 1, length(lvlseries)))
                 palette <- unlist(strsplit(palette,"[\\(\\)]", perl=TRUE))[1]
-            lstColor <- as.list(setColors(palette))
-        }
-
-        #--------Title and subtitle--------
-        if (! all(is.null(c(title, subtitle, title_url, subtitle_url)))){
-            lstTitle <- makeTitle(
-                ifelse(is.null(z), title,
-                       paste0(ifelse(is.null(title), "", title), " (", zvar,
-                              " = ", timeslice[t],")")),
-                title_url, subtitle, subtitle_url, pos=pos$title)
-        } else{
-            lstTitle <- list()
+            lstColor <- as.list(getColors(palette))
         }
 
         #-------Tooltip--------------
@@ -925,7 +925,7 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
                 trigger = ifelse(type[1] %in% c('pie','ring','funnel','pyramid','map',
                                                 'rose','wordcloud','radar',
                                                 'chord','force','gauge'),
-                                 'item','axis'),
+                                 'item', 'axis'),
                 axisPointer = list(
                     show = TRUE,lineStyle = list(type = 'dashed',width = 1)
                 )
@@ -959,136 +959,17 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
         }
 
         #-------------Toolbox----------------
-        lstToolbox <- makeToolbox(
-            toolbox=toolbox, type=type,
-            show=c('mark', 'dataZoom', 'dataView', 'magicType', 'restore',
-                   'saveAsImage'), pos=pos$toolbox)
+        lstToolbox <- makeToolbox(toolbox=toolbox, type=type, pos=pos$toolbox)
 
         #----------dataZoom----------
-        lstdataZoom <- NULL
-
-        if (!is.null(dataZoom)) {
-            lstdataZoom <- list(show=TRUE)
-            if (pos[['dataZoom']] %in% c(8:10)){
-                lstdataZoom[['x']] <- 0
-            }else if (pos[['dataZoom']] %in% c(11:12,1,5:7)){
-                lstdataZoom[['x']] <- 80
-            }else if (pos[['dataZoom']] %in% c(2:4)){
-                lstdataZoom[['x']] <- dev.size('px')[1]-80
-            }
-            if (pos[['dataZoom']] %in% c(8:10,2:4)){
-                lstdataZoom[['y']] <- 60
-            }else if (pos[['dataZoom']] %in% c(11:12,1)){
-                lstdataZoom[['y']] <- 30
-            }else if (pos[['dataZoom']] %in% 5:7){
-                if (!is.null(title) & pos[['title']] %in% 5:7){
-                    lstdataZoom[['y']] <- dev.size('px')[2]-60
-                }
-            }
-            lstdataZoom[['orient']] <- vecPos(pos[['dataZoom']])[3]
-            if (all(is.numeric(dataZoom))){
-                if (any(!dataZoom>=0 | !dataZoom<=100)){
-                    stop("dataZoom should be between 0 and 100")
-                }else{
-                    lstdataZoom[['start']] <- min(dataZoom[1],dataZoom[2])
-                    lstdataZoom[['end']] <- max(dataZoom[1],dataZoom[2])
-                }
-            }
-        }
-
-
-        #--------dataRange-----------
-        lstdataRange <- NULL
-        if (!is.null(dataRange)) {
-            if (!all(is.na(y))) {
-                dRange <- dcast(data,data[,xvar]~., value.var=yvar, sum)
-            }else{
-                dRange <- matrix(rep(NA,2),ncol=2)
-            }
-            if (!is.null(markLine)) {
-                dRange1 <- range(as.numeric(markLine[,3]))
-            }else{
-                dRange1 <- range(dRange[,2])
-            }
-            if (!is.null(markPoint)) {
-                dRange2 <- range(as.numeric(markPoint[,3]))
-            }else{
-                dRange2 <- range(dRange[,2])
-            }
-            dmin <- min(dRange[,2],dRange1[1],dRange2[1],na.rm=TRUE)
-            dmax <- max(dRange[,2],dRange1[2],dRange2[2],na.rm=TRUE)
-            if (!is.null(dataRangePalette)){
-                lstdataRangePalette <- setColors(dataRangePalette)
-            }
-            rangeminpoint <- rangemaxpoint <- NULL
-            if (length(dataRange)==2){
-                if (!is.logical(dataRange[1]) && !is.na(as.numeric(dataRange[1]))) {
-                    rangemaxpoint=as.numeric(dataRange[1])
-                    dataRange <- c("",dataRange[2])
-                }
-                if (!is.logical(dataRange[2]) &&!is.na(as.numeric(dataRange[2]))) {
-                    rangeminpoint=as.numeric(dataRange[2])
-                    dataRange <- c(dataRange[1],"")
-                }
-            }else{
-                if (!is.logical(dataRange) && !is.na(as.numeric(dataRange)))  {
-                    rangemaxpoint=as.numeric(dataRange)
-                    dataRange=c("","")
-                }else{
-                    dataRange=c(dataRange,"")
-                }
-            }
-
-            lstdataRange <- list(
-                show=TRUE, calculable=ifelse(as.numeric(splitNumber[1])==0 |
-                                                 is.null(splitNumber),calculable,FALSE),
-                text=as.vector(dataRange), itemGap=5,
-                min= ifelse(dmin>=0 && (dmin-ceiling((dmax-dmin)/10)<0),
-                            0, dmin-ceiling((dmax-dmin)/10)),
-                max=dmax+ceiling((dmax-dmin)/10),
-                color=lstdataRangePalette,
-                splitNumber=ifelse(is.null(splitNumber),0,
-                                   as.numeric(splitNumber[1])),
-                x= vecPos(pos[['dataRange']])[1],
-                y= vecPos(pos[['dataRange']])[2],
-                orient= vecPos(pos[['dataRange']])[3]
-            )
-            if (!is.null(rangeminpoint) | !is.null(rangemaxpoint)){
-                lstdataRange[['range']] <- list(start=0,end=100)
-                lstdataRange[['calculable']] <- TRUE
-                if (!is.null(rangeminpoint)) {
-                    lstdataRange[['range']][['start']] <-
-                        100*(rangeminpoint-lstdataRange[['min']])/
-                        (lstdataRange[['max']]-lstdataRange[['min']])
-                }
-                if (!is.null(rangemaxpoint)) {
-                    lstdataRange[['range']][['end']] <-
-                        100*(rangemaxpoint-lstdataRange[['min']])/
-                        (lstdataRange[['max']]-lstdataRange[['min']])
-                }
-            }
-            if (length(splitNumber)>1){ # split List
-                splitNumber <- splitNumber[order(splitNumber,decreasing=TRUE)]
-                splitList <- list(list(start=splitNumber[1]))
-                for (rank in 1:(length(splitNumber)-1)){
-                    splitList[[rank+1]] <- list(start=splitNumber[rank+1],
-                                                end=splitNumber[rank])
-                }
-                splitList[[length(splitNumber)+1]] <-
-                    list(end=splitNumber[length(splitNumber)])
-                lstdataRange[['calculable']] <- lstdataRange[['splitNumber']] <- NULL
-                lstdataRange[['min']] <- lstdataRange[['max']] <- NULL
-                lstdataRange[['text']] <- NULL
-                lstdataRange[['splitList']] <- splitList
-            }
-        }
+        lstdataZoom <- makeDataZoom(NULL)
 
         #---------Grid------------------
         lstGrid <- NULL
         bottomSpace <- 20
         if (pos[['title']] %in% 5:7) {
             bottomSpace <- 60
-            if (!is.null(subtitle)) bottomSpace <- bottomSpace+20
+            #if (!is.null(subtitle)) bottomSpace <- bottomSpace+20
         }
         if (!is.null(z)) bottomSpace <- bottomSpace + 50
         if (!is.null(dataZoom) && pos[['dataZoom']] %in% 5:7){
@@ -1219,14 +1100,14 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
                     if (is.null(xAxis1)) {
                         lstXAxis[['splitLine']]<-list(show=ifelse(varYAxis[['splitLine']],TRUE,FALSE))
                     }else{
-                        lstXAxis[[i]][['splitLine']]<-list(show=ifelse(varYAxis[['splitLine']],TRUE,FALSE))
+                        lstXAxis[[i]][['splitLine']]<-list(show=(varYAxis[['splitLine']]))
                     }
                 }
             }
-            tmpYAxis[['splitArea']]<-list(show=ifelse(varYAxis[['banded']],TRUE,FALSE))
+            tmpYAxis[['splitArea']]<-list(show=(varYAxis[['banded']]))
 
-            if (abs(as.numeric(varYAxis[['rotate']]))<=90){
-                if (is.null(tmpYAxis[['axisLabel']])) tmpYAxis[['axisLabel']]<-list()
+            if (abs(as.numeric(varYAxis[['rotate']])) <= 90){
+                if (is.null(tmpYAxis[['axisLabel']])) tmpYAxis[['axisLabel']] <- list()
                 tmpYAxis[['axisLabel']][['rotate']] <- varYAxis[['rotate']]
             }
             if (is.null(yAxis1)) {
@@ -1295,9 +1176,7 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
                 lstLegend[['show']] <- FALSE
             }
         }
-        lstLegend[['x']] <- vecPos(pos[['legend']])[1]
-        lstLegend[['y']] <- vecPos(pos[['legend']])[2]
-        lstLegend[['orient']] <- vecPos(pos[['legend']])[3]
+        lstLegend[c('x', 'y', 'orient')] <- vecPos(pos[['legend']])
 
         #----------polar---------------
         if (type[1] %in% c('radar','radarfill')){
@@ -2226,7 +2105,7 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
             textColor <- rgba(vecColor)
             if (!is.null(lstTitle)) lstTitle[['textStyle']][['color']] <- textColor
             if (!is.null(lstLegend)) lstLegend[['textStyle']][['color']] <- textColor
-            if (!is.null(lstdataRange)) lstdataRange[['textStyle']][['color']] <- textColor
+            #if (!is.null(lstdataRange)) lstdataRange[['textStyle']][['color']] <- textColor
             for (ser in 1:length(lstSeries)){
                 if (length(lstSeries[[ser]][['data']])==0){
                     if (is.null(lstSeries[[ser]][['itemStyle']][['normal']][['areaStyle']])){
@@ -2272,7 +2151,7 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
         #-------Make plot-------------
         if (is.null(z)){
             chartobj <- list(
-                title=lstTitle,  tooltip=lstTooltip,
+                tooltip=lstTooltip,
                 toolbox=lstToolbox,
                 calculable=calculable,
                 series=lstSeries
@@ -2283,9 +2162,9 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
             if (!is.null(lstColor)) chartobj[['color']] <- lstColor
             if (try(exists("lstGrid"),T)) chartobj[['grid']] <- lstGrid
             if (!is.null(lstSymbol)) chartobj[['symbolList']] <- lstSymbol
-            if (!is.null(lstdataZoom)) chartobj[['dataZoom']] <- lstdataZoom
-            if (!is.null(lstdataRange)) chartobj[['dataRange']] <- lstdataRange
-            #if (!is.null(lstSeries[[1]][['name']]))   chartobj[['legend']] <- lstLegend
+            #if (!is.null(lstdataZoom)) chartobj[['dataZoom']] <- lstdataZoom
+            #if (!is.null(lstdataRange)) chartobj[['dataRange']] <- lstdataRange
+            if (!is.null(lstSeries[[1]][['name']]))   chartobj[['legend']] <- lstLegend
             if (!is.null(lstLegend))   chartobj[['legend']] <- lstLegend
             if (type[1] %in% c('scatter','bubble','line','bar','linesmooth','histogram',
                                'area','areasmooth','k')){
@@ -2305,7 +2184,7 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
         }else{
             if (t==1){ # the 1st timeslice
                 chartobj <- list(list(
-                    title=lstTitle,  tooltip=lstTooltip,
+                    tooltip=lstTooltip,
                     toolbox=lstToolbox,
                     calculable=calculable,
                     series=lstSeries
@@ -2318,12 +2197,12 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
                 if (!is.null(lstColor)) chartobj[[t]][['color']] <- lstColor
                 if (try(exists("lstGrid"),TRUE)) chartobj[[t]][['grid']] <- lstGrid
                 if (!is.null(lstSymbol)) chartobj[[t]][['symbolList']] <- lstSymbol
-                if (!is.null(lstdataZoom)) chartobj[[t]][['dataZoom']] <- lstdataZoom
-                if (!is.null(lstdataRange)) chartobj[[t]][['dataRange']] <- lstdataRange
-                #if (!is.null(lstSeries[[1]][['name']]))   chartobj[['legend']] <- lstLegend
+                #if (!is.null(lstdataZoom)) chartobj[[t]][['dataZoom']] <- lstdataZoom
+                #if (!is.null(lstdataRange)) chartobj[[t]][['dataRange']] <- lstdataRange
+                if (!is.null(lstSeries[[1]][['name']]))   chartobj[[t]][['legend']] <- lstLegend
                 if (!is.null(lstLegend))  chartobj[[t]][['legend']] <- lstLegend
-                if (type[1] %in% c('scatter','bubble','line','bar','linesmooth','histogram',
-                                   'area','areasmooth')){
+                if (type[1] %in% c('scatter','bubble','line','bar','histogram',
+                                   'area')){
                     chartobj[[t]][['xAxis']] <- lstXAxis
                     chartobj[[t]][['yAxis']] <- lstYAxis
                 }else if(type[1] %in% c('map')){
@@ -2339,13 +2218,13 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
                     chartobj[[t]][['polar']] <- lstPolar
                 }
             }else if (t>1){
-                chartobj[[t]] <- list(title=lstTitle,series=lstSeries)
+                chartobj[[t]] <- list(series=lstSeries)
             }
         }
         }# loop end over z
     #----------Finally plot it---------
     if (!is.null(z)) {
-        output <- echart(list(timeline=lstTimeline,options=chartobj))
+        output <- echart(list(timeline=lstTimeline, options=chartobj))
     }else{
         output <- echart(chartobj)
     }
@@ -2355,11 +2234,19 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
 }
 
 
-makeTitle <- function(title=NULL, link=NULL,
-                     subtitle=NULL, sublink=NULL, pos=6, ...){
-
-    lstTitle <- list(text=ifelse(is.null(title), "", title),
-                     subtext=ifelse(is.null(subtitle), "", subtitle))
+makeTitle <- function(title=NULL, subtitle=NULL, link=NULL,
+                     sublink=NULL, pos=6, ...){
+    title <- ifelse(is.null(title), "", title)
+    subtitle <- ifelse(is.null(subtitle), "", subtitle)
+    if (grepl("^\\[.+\\]\\(.+\\)$", title)){
+        link <- gsub("^\\[(.+)\\]\\((.+)\\)$", "\\2", title)
+        title <- gsub("^\\[(.+)\\]\\((.+)\\)$", "\\1", title)
+    }
+    if (grepl("^\\[.+\\]\\(.+\\)$", subtitle)){
+        sublink <- gsub("^\\[(.+)\\]\\((.+)\\)$", "\\2", subtitle)
+        subtitle <- gsub("^\\[(.+)\\]\\((.+)\\)$", "\\1", subtitle)
+    }
+    lstTitle <- list(text=title, subtext=subtitle)
     lstTitle[['x']] <- vecPos(pos)[1]
     lstTitle[['y']] <- vecPos(pos)[2]
     lstTitle[['orient']] <- vecPos(pos)[3]
@@ -2373,13 +2260,19 @@ makeTitle <- function(title=NULL, link=NULL,
 #' Set Title And Subtitle of Echarts
 #'
 #' When an echart object is generated, you can modify it by setting title and
-#' subtitles using %>%.
+#' subtitles using \%>\%.
 #' @param chart \code{echart} object generated by \code{\link{echart}} or \code{\link{echartR}}
-#' @param title text of the title
+#' @param title text of the title. If written in markdown format \code{[caption](url)},
+#' then \code{caption} is passed to title, \code{url} is passed to link. If the length
+#' of the title vector equals to the length of timeline slices, the title vector will
+#' be used as slice-specific user-defined title.
 #' @param link link of the title
-#' @param subtitle text of the subtitle
+#' @param subtitle text of the subtitle. If written in markdown format \code{[caption](url)},
+#' then \code{caption} is passed to title, \code{url} is passed to link. If the length
+#' of the subtitle vector equals to the length of timeline slices, the subtitle vector will
+#' be used as slice-specific user-defined title.
 #' @param sublink link of the subtitle
-#' @param pos the clock-position of title (and subtitle), refert to \code{\link{rechart:::vecPos}}
+#' @param pos the clock-position of title (and subtitle), refert to \code{\link{vecPos}}
 #' @param ... elipsis
 #'
 #' @return A modified echart object
@@ -2387,15 +2280,76 @@ makeTitle <- function(title=NULL, link=NULL,
 #'
 #' @examples
 #' \dontrun{
+#' ## simple echarts scatter plot
 #' g <- iris %>% echartR(x=Sepal.Width, y=Petal.Width, series=Species, type='scatter')
-#' g %>% setTitle(title='Iris', subtitle='by: Fisher')
+#'
+#' ## set simple titles
+#' g %>% setTitle(title='Iris data set', subtitle='by: R. A. Fisher')
+#'
+#' ## set titles with links
+#' g %>% setTitle(
+#'   '[Iris data set](https://en.wikipedia.org/wiki/Iris_flower_data_set)',
+#'   '[R. A. Fisher](https://en.wikipedia.org/wiki/Ronald_Fisher)')
+#'
+#' ## echarts with timeline
+#' g1 <- iris %>% echartR(x=Sepal.Width, y=Petal.Width, z=Species, type='scatter')
+#'
+#' ## simple titles/subtitles
+#' g1 %>% setTitle(
+#'     '[Iris data set](https://en.wikipedia.org/wiki/Iris_flower_data_set)',
+#'     '[R. A. Fisher](https://en.wikipedia.org/wiki/Ronald_Fisher)')
+#'
+#' ## user-defined titles/subtitles
+#' titles <- c(
+#'     '[Iris species 1](https://en.wikipedia.org/wiki/Iris_setosa)',
+#'     '[Iris species versicolor](https://en.wikipedia.org/wiki/Iris_versicolor)',
+#'     '[Iris species 3](https://en.wikipedia.org/wiki/Iris_virginica)')
+#' g1 %>% setTitle(titles)
 #' }
-setTitle <- function(chart, title=NULL, link=NULL,
-                     subtitle=NULL, sublink=NULL, pos=6, ...){
-    if (all(is.null(c(title, link, subtitle, sublink)))){
-        chart$x$title <- list()
-    }else{
-        chart$x$title <- makeTitle(title, link, subtitle, sublink, pos)
+setTitle <- function(chart, title=NULL, subtitle=NULL, link=NULL,
+                     sublink=NULL, pos=6, ...){
+    if ('timeline' %in% names(chart$x)[1]){  # has a timeline
+        if (!is.null(title)){
+            if (length(title) == length(chart$x$options)){
+                titles <- unlist(title)
+            } else {
+                if (grepl("^\\[.+\\]\\(.+\\)$", title[1])){
+                    link <- gsub("^\\[(.+)\\]\\((.+)\\)$", "\\2", title[1])
+                    title <- gsub("^\\[(.+)\\]\\((.+)\\)$", "\\1", title[1])
+                }
+                titles <- paste0(
+                    rep(gsub("^\\[(.+)\\]\\((.+)\\)$", "\\1", title),
+                        length(chart$x$options)), " (",
+                    attr(chart$x$timeline, 'sliceby'), " = ",
+                    chart$x$timeline$data, ")")
+            }
+        } else {
+            titles <- rep(NULL, length(chart$x$options))
+        }
+        .dupicateThem <- function(val){
+            if (!is.null(val)){
+                if (length(val) == length(chart$x$options)){
+                    return(as.vector(val))
+                } else {
+                    return(rep(val[1], length(chart$x$options)))
+                }
+            } else {
+                return(rep(NULL, length(chart$x$options)))
+            }
+        }
+        subtitles <- .dupicateThem(subtitle)
+        links <- .dupicateThem(link)
+        sublinks <- .dupicateThem(sublink)
+
+        for (i in seq_len(length(chart$x$options))){
+            if (! all(is.null(c(titles, subtitles, links, sublinks)))){
+                chart$x$options[[i]]$title <- makeTitle(
+                    titles[i], subtitles[i], links[i], sublink[i], pos[1])
+            }
+        }
+    }else{  # do not have timeline
+        if (! all(is.null(c(title, subtitle, link, sublink))))
+            chart$x$title <- makeTitle(title, subtitle, link, sublink, pos[1])
     }
     return(chart)
 }
@@ -2403,20 +2357,21 @@ setTitle <- function(chart, title=NULL, link=NULL,
 makeToolbox <- function(toolbox=c(TRUE,'cn'), type='auto',
                        show=c('mark', 'dataZoom', 'dataView', 'magicType',
                               'restore', 'saveAsImage'), pos=1, ...){
+    if (! is.null(show)) show <- tolower(show)
     if (toolbox[1]){
         lstToolbox= list(
-            show = TRUE,
+            show = toolbox[1],
             feature = list(
-                mark =list(show = ('mark' %in% tolower(show))),
-                dataZoom = list(show = ('datazoom' %in% tolower(show))),
-                dataView = list(show = ('dataview' %in% tolower(show)),
+                mark =list(show = ('mark' %in% show)),
+                dataZoom = list(show = ('datazoom' %in% show)),
+                dataView = list(show = ('dataview' %in% show),
                                 readOnly = FALSE),
                 magicType = list(show = FALSE),
-                restore = list(show = ('restore' %in% tolower(show))),
-                saveAsImage = list(show = ('saveasimage' %in% tolower(show)))
+                restore = list(show = ('restore' %in% show)),
+                saveAsImage = list(show = ('saveasimage' %in% show))
             )
         )
-        if (tolower(toolbox[2]) != 'cn'){
+        if (tolower(toolbox[2]) != 'cn'){  # Enlish tooltips of the controls
             lstToolbox[['feature']][['mark']][['title']] = list(
                 mark="Apply Auxiliary Conductor",
                 markUndo="Undo Auxiliary Conductor",
@@ -2428,9 +2383,7 @@ makeToolbox <- function(toolbox=c(TRUE,'cn'), type='auto',
             lstToolbox[['feature']][['restore']][['title']] = "Restore"
             lstToolbox[['feature']][['saveAsImage']][['title']] = "Save As Image"
         }
-        lstToolbox[['x']] <- vecPos(pos)[1]
-        lstToolbox[['y']] <- vecPos(pos)[2]
-        lstToolbox[['orient']] <- vecPos(pos)[3]
+        lstToolbox[c('x', 'y', 'orient')] <- vecPos(pos)
 
         if (type[1] %in% c('auto', 'line', 'bar', 'area', 'k', 'histogram')){
             lstToolbox[['feature']][['magicType']] <-
@@ -2468,13 +2421,13 @@ makeToolbox <- function(toolbox=c(TRUE,'cn'), type='auto',
 
 #' Set Toolbox of Echarts
 #'
-#' When an echart object is generated, you can modify it by setting toolbox using %>%.
+#' When an echart object is generated, you can modify it by setting toolbox using \%>\%.
 #' @param chart \code{echart} object generated by \code{\link{echart}} or \code{\link{echartR}}
 #' @param show logical. Show the toolbox if TRUE.
 #' @param language 'cn' or 'en', the language of the toolbox tooltips.
 #' @param controls which widgets to show. Default \code{'mark', 'dataZoom', 'dataView', 'magicType',
 #' 'restore', 'saveAsImage'}.
-#' @param pos the clock-position of toolbox, refert to \code{\link{rechart:::vecPos}}
+#' @param pos the clock-position of toolbox, refert to \code{\link{vecPos}}
 #' @param ... elipsis
 #'
 #' @return A modified echart object
@@ -2488,14 +2441,21 @@ makeToolbox <- function(toolbox=c(TRUE,'cn'), type='auto',
 setToolbox <- function(chart, show=TRUE, language='cn',
                        controls=c('mark', 'dataZoom', 'dataView', 'magicType',
                               'restore', 'saveAsImage'), pos=1, ...){
-    type <- chart$x$series[[1]]$type
-    chart$x$toolbox <- makeToolbox(toolbox=c(show, language), type, controls, pos)
+    if ('timeline' %in% names(chart$x)){
+        type <- chart$x$options[[1]]$series[[1]]$type
+        chart$x$options[[1]]$toolbox <- makeToolbox(toolbox=c(show, language),
+                                                    type, controls, pos)
+    }else{
+        type <- chart$x$series[[1]]$type
+        chart$x$toolbox <- makeToolbox(toolbox=c(show, language),
+                                       type, controls, pos)
+    }
     return(chart)
 }
 
-#' Set Colors for Echarts
+#' Get Hex Color Vector
 #'
-#' Set color vector from a palette.
+#' Get color vector from a palette.
 #' @param palette Palette, default NULL. Could be
 #' \itemize{
 #'  \item palette name, e.g, "Blues"
@@ -2505,16 +2465,15 @@ setToolbox <- function(chart, show=TRUE, language='cn',
 #' }
 #'
 #' @return A vector of hex colors
-#' @export
 #'
 #' @seealso \code{\link{recharts:::setPal}} \code{\link{RColorBrewer}} \code{\link{ggthemes}}
 #' @examples
 #' \dontrun{
-#' setColors(NULL)
-#' setColors("terrain")
-#' setColors(c('red', 'yellow', 'blue'))
+#' getColors(NULL)
+#' getColors("terrain")
+#' getColors(c('red', 'yellow', 'blue'))
 #' }
-setColors <- function(palette){
+getColors <- function(palette){
     # build a function to extract palette info
     # used for echartR
     if (length(palette)==1) {
@@ -2540,19 +2499,242 @@ setColors <- function(palette){
             }
         }
     }else if(length(palette)>1){
-        aetPal <- vector()
-        for (i in 1:length(palette)){
-            if (!is(try(col2rgb(palette[i]),T),"try-error")){
-                if (substr(palette[i],1,1)=="#"){
-                    aetPal <- c(aetPal,toupper(palette[i]))
+        .convCol <- function(iPal){
+            if (!is(try(col2rgb(iPal), TRUE), "try-error")){
+                if (substr(iPal, 1, 1) == "#"){
+                    return(toupper(iPal))
                 }else{
-                    vecCol <- as.vector(col2rgb(palette[i]))
-                    aetPal <- c(aetPal,rgba(vecCol))
+                    vecCol <- as.vector(col2rgb(iPal))
+                    return(rgba(vecCol))
                 }
             }
         }
+        aetPal <- unlist(lapply(palette, .convPal))
         return(aetPal)
     }else{
         return(setPal(NULL))
     }
+}
+
+makeDataZoom <- function(show=FALSE, pos=6, range=NULL, pos.adjust=0,
+                         fill='rgba(144,197,237,0.2)',
+                         handle='rgba(70,130,180,0.8)', ...){
+    if (!is.null(show)) {
+        lstdataZoom <- list(show=show, fillerColor=fill, handleColor=handle)
+        if (pos %in% c(8:10)){
+            lstdataZoom[['x']] <- 0
+        }else if (pos %in% c(11:12, 1, 5:7)){
+            lstdataZoom[['x']] <- 80
+        }else if (pos %in% c(2:4)){
+            lstdataZoom[['x']] <- dev.size('px')[1] - 80
+        }
+        if (pos %in% c(8:10, 2:4)){
+            lstdataZoom[['y']] <- 60
+        }else if (pos %in% c(11:12, 1)){
+            lstdataZoom[['y']] <- 30
+        }
+        if (pos.adjust != 0) lstdataZoom[['y']] <- dev.size('px')[2] - pos.adjust
+        lstdataZoom[['orient']] <- vecPos(pos)[3]
+        if (!is.null(range))
+            range <- c(range[1], ifelse(length(range) == 1, range[1], range[2]))
+        if (all(is.numeric(range[1:2]))){
+            if (any(! range >= 0 | ! range <= 100)){
+                stop("dataZoom should be between 0 and 100")
+            }else{
+                lstdataZoom[['start']] <- min(range[1:2])
+                lstdataZoom[['end']] <- max(range[1:2])
+            }
+        }
+    } else {
+        lstdataZoom <- list(show=FALSE)
+    }
+    return(lstdataZoom)
+}
+
+#' Set dataZoom Bar of Echarts
+#'
+#' When an echart object is generated, you can modify it by setting toolbox using \%>\%.
+#'
+#' @param chart \code{echart} object generated by \code{\link{echart}} or \code{\link{echartR}}
+#' @param show logical. Show the dataZoom control if TRUE.
+#' @param pos the clock-position of dataZoom, refert to \code{\link{vecPos}}
+#' @param range A vector of \code{c(min, max)}. Cannot be out of the frame c(0, 100)
+#' @param pos.adjust Pixel value of the vertical position adjustment from the page edge.
+#' @param fill fillerColor of the dataZoom bar, in character \code{'rgba(red, green,
+#' blue, alpha)'} format. Default 'rgba(144,197,237,0.2)' ("#90C5ED33").
+#' @param handle handleColor of the dataZoom bar, in character \code{'rgba(red, green,
+#' blue, alpha)'} format. Default 'rgba(70,130,180,0.8)' ("#4682B4CC").
+#' @param ... elipsis
+#'
+#' @return A modified echart object
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' g <- iris %>% echartR(x=Sepal.Width, y=Petal.Width, series=Species, type='scatter')
+#' g %>% setDataZoom(fill=recharts:::rgba(c(col2rgb('gold'), 0.3)),
+#'                   handle=recharts:::rgba(c(col2rgb('gold'), 1)))
+#'
+#' g1 <- iris %>% echartR(x=Sepal.Width, y=Petal.Width, z=Species, type='scatter')
+#' g1 %>% setDataZoom(fill=recharts:::rgba(c(col2rgb('lightgreen'), 0.2)),
+#'                   handle=recharts:::rgba(c(col2rgb('darkgreen'), 0.5)))
+#' }
+setDataZoom <- function(chart, show=TRUE, pos=6, range=NULL, pos.adjust=0,
+                        fill='rgba(144,197,237,0.2)',
+                        handle='rgba(70,130,180,0.8)', ...){
+    if ('timeline' %in% names(chart$x)){
+        chart$x$options[[1]][['dataZoom']] <- makeDataZoom(
+            show=show, pos=pos, range=range, pos.adjust=pos.adjust, fill=fill,
+            handle=handle)
+    }else{
+        chart$x[['dataZoom']] <- makeDataZoom(
+            show=show, pos=pos, range=range, pos.adjust=pos.adjust, fill=fill,
+            handle=handle)
+    }
+    return(chart)
+}
+
+makeDataRange <- function(show=FALSE, pos=8, min=NULL, max=NULL, splitNumber=5,
+                          itemGap=5, labels=NULL, border='#ccc', calculable=FALSE,
+                          selectedMode=list(TRUE, 'single', 'multiple'),
+                          color=c("#1e90ff", "#f0ffff"),
+                          splitList=NULL, initialRange=NULL, ...){
+    ## color must be color vector
+    ## splitList must be list(list(start=m, end=n, label=x, color=hex), ...)
+    ## initialRange must be list(start=m, end=n)
+    if (is.null(show)) {
+        lstdataRange <- NULL
+    } else {
+        if (! show){
+            lstdataRange <- NULL
+        }else{
+            lstdataRange <- list(
+                show=show, calculable=ifelse(as.numeric(splitNumber[1])==0 ||
+                                                 is.null(splitNumber),
+                                             calculable, FALSE),
+                color=color, borderColor=border, min=min, max=max,
+                itemWidth=6, selectedMode=selectedMode[[1]]
+            )
+            lstdataRange[c('x', 'y', 'orient')] <- vecPos(pos)
+            if (!is.null(labels)) {
+                if (length(labels) == 1) lstdataRange[['text']] <- c(labels, "")
+                else lstdataRange[['text']] <- labels[1:2]
+            }
+            if (!is.null(min)) lstdataRange[['min']] <- as.numeric(min)
+            if (!is.null(max)) lstdataRange[['max']] <- as.numeric(max)
+            if (!is.null(splitList)){
+                if (is.list(splitList) &&
+                    all(names(splitList[[1]]) %in% c('start', 'end', 'label', 'color'))){
+                    lstdataRange[['splitList']] <- splitList
+                    lstdataRange[['itemGap']] <- itemGap
+                }
+            }else{
+                if (splitNumber > 0) {
+                    lstdataRange[['itemGap']] <- itemGap
+                    lstdataRange[['splitNumber']] <- splitNumber
+                }
+            }
+            if (calculable && !is.null(initialRange)){
+                if (is.list(initialRange) &&
+                    all(names(initialRange) %in% c('start', 'end'))){
+                    lstdataRange[['range']] <- initialRange
+                }
+            }
+        }
+    }
+    return(lstdataRange)
+}
+
+#' Set dataRange Bar of Echarts
+#'
+#' When an echart object is generated, you can modify it by setting toolbox using \%>\%.
+#'
+#' @param chart \code{echart} object generated by \code{\link{echart}} or \code{\link{echartR}}
+#' @param show logical. Show the dataRange control if TRUE.
+#' @param pos the clock-position of dataRange, default 8. Refer to \code{\link{vecPos}}
+#' @param valueRange The range of the dataRange bar in form of \code{c(min, max)}.
+#' If NULL, echarts default will be used.
+#' @param splitNumber How many discrete sections will the dataRange bar be divided into.
+#' Default 5. Set it to 0 to set the bar continuous.
+#' @param itemGap The gap between itmes in pixels. Default 10px.
+#' @param labels The labels to the ends the dataRange bar in form \code{c('high end',
+#' 'low end')}. Default NULL, the min, max values will be used.
+#' @param border The border color of the dataRange bar.
+#' @param calculable Logical. If echart calculable feature is open. Default FALSE.
+#' @param selectedMode The mode of the dataRange bar, default TRUE. You can also
+#' set it 'single' or 'multiple'.
+#' @param color The hex vector of colors used for dataRange bar. Default c("#1e90ff", "#f0ffff").
+#' @param splitList A list for user-defined value split in the form of
+#' \code{list(list(start=m, end=n, label=x, color=hex), ...)}. If a valid splitList is set,
+#' splitNumber will be disabled.
+#' @param initialRange Initial selected value range in the form of \code{list(start=m, end=n)}
+#' @param ... elipsis
+#'
+#' @return A modified echarts object
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' g <- iris %>% echartR(x=Sepal.Width, y=Petal.Width, series=Species, type='scatter')
+#' g %>% setDataRange()
+#'
+#' g1 <- iris %>% echartR(x=Sepal.Width, y=Petal.Width, z=Species, type='scatter')
+#' g1 %>% setDataRange()
+#' }
+setDataRange <- function(
+    chart, show=TRUE, pos=8, valueRange=NULL, splitNumber=5, itemGap=5,
+    labels=NULL, border='#ccc', calculable=FALSE, selectedMode=list(TRUE, 'single', 'multiple'),
+    color=c("#1e90ff", "#f0ffff"), splitList=NULL, initialRange=NULL,
+    ...){
+    if (! is.null(valueRange[1])) {
+        if (is.numeric(valueRange) && length(valueRange) > 1){
+            min <- range(valueRange)[1]
+            max <- range(valueRange)[2]
+        }else{
+            min <- max <- NULL
+        }
+    }else{
+        min <- range(getYFromEChart(chart))[1]
+        max <- range(getYFromEChart(chart))[2]
+    }
+
+    lst <- makeDataRange(
+        show=show, pos=pos, min=min, max=max, splitNumber=splitNumber,
+        itemGap=itemGap, labels=labels, border=border, calculable=calculable,
+        selectedMode=selectedMode, color=color,
+        splitList=splitList, initialRange=initialRange
+    )
+    if (!is.null(lst)){
+        if ('timeline' %in% names(chart$x)){
+            chart$x$options[[1]][['dataRange']] <- lst
+        } else {
+            chart$x[['dataRange']] <- lst
+        }
+    }
+    return(chart)
+}
+
+getYFromEChart <- function(chart, ...){
+    ## get y series data and extract the unique values vector
+    .getY <- function(seriesData){
+        if (! is.null(dim(seriesData))){
+            if (dim(seriesData)[2] > 1){
+                return(seriesData[,2])
+            }else{
+                return(seriesData[,1])
+            }
+        }else{
+            return(seriesData)
+        }
+    }
+    if ('timeline' %in% names(chart$x)){
+        y <- sapply(chart$x$options, function(lst){
+            return(.getY(lst$series$data))
+        })
+    }else{
+        y <- sapply(chart$x$series, function(lst) {
+            return(.getY(lst$data))
+        })
+    }
+    return(as.numeric(unique(unlist(y))))
 }

@@ -18,7 +18,7 @@ setToolbox(chart, show = TRUE, language = "cn", controls = c("mark",
 \item{controls}{which widgets to show. Default \code{'mark', 'dataZoom', 'dataView', 'magicType',
 'restore', 'saveAsImage'}.}
 
-\item{pos}{the clock-position of toolbox, refert to \code{\link{rechart:::vecPos}}}
+\item{pos}{the clock-position of toolbox, refert to \code{\link{vecPos}}}
 
 \item{...}{elipsis}
 }
@@ -26,7 +26,7 @@ setToolbox(chart, show = TRUE, language = "cn", controls = c("mark",
 A modified echart object
 }
 \description{
-When an echart object is generated, you can modify it by setting toolbox using %>%.
+When an echart object is generated, you can modify it by setting toolbox using \%>\%.
 }
 \examples{
 \dontrun{

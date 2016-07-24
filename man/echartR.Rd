@@ -4,22 +4,20 @@
 \alias{echartR}
 \title{A lattice-like workaround function to generate Echarts}
 \usage{
-echartR(data, x = NULL, y, z = NULL, series = NULL, weight = NULL,
+echartR(data, x = NULL, y = x, z = NULL, series = NULL, weight = NULL,
   xcoord = NULL, ycoord = NULL, x1 = NULL, xcoord1 = NULL,
-  ycoord1 = NULL, type = "auto", stack = FALSE, title = NULL,
-  subtitle = NULL, title_url = NULL, subtitle_url = NULL,
-  symbolList = NULL, dataZoom = NULL, dataRange = NULL,
-  splitNumber = NULL, dataRangePalette = NULL, xlab = NULL,
-  xAxis = list(lab = xlab, color = NULL, splitLine = TRUE, banded = FALSE,
-  rotate = 0), ylab = NULL, yAxis = list(lab = ylab, color = NULL, splitLine
-  = TRUE, banded = FALSE, rotate = 0), xlab1 = NULL, xAxis1 = list(lab =
-  xlab1, series = NULL, reverse = FALSE, color = NULL, splitLine = TRUE, banded
-  = FALSE, rotate = 0), ylab1 = NULL, yAxis1 = list(lab = ylab1, series =
-  NULL, reverse = FALSE, color = NULL, splitLine = TRUE, banded = FALSE, rotate
-  = 0), xyflip = FALSE, AxisAtZero = c(FALSE, TRUE), scale = TRUE,
-  palette = NULL, tooltip = TRUE, legend = TRUE, toolbox = c(TRUE,
-  "cn"), pos = list(title = 6, legend = 11, toolbox = 1, dataZoom = 6,
-  dataRange = 8, roam = 2), calculable = TRUE, asImage = FALSE,
+  ycoord1 = NULL, type = "auto", stack = FALSE, symbolList = NULL,
+  dataZoom = NULL, xlab = NULL, xAxis = list(lab = xlab, color = NULL,
+  splitLine = TRUE, banded = FALSE, rotate = 0), ylab = NULL,
+  yAxis = list(lab = ylab, color = NULL, splitLine = TRUE, banded = FALSE,
+  rotate = 0), xlab1 = NULL, xAxis1 = list(lab = xlab1, series = NULL,
+  reverse = FALSE, color = NULL, splitLine = TRUE, banded = FALSE, rotate = 0),
+  ylab1 = NULL, yAxis1 = list(lab = ylab1, series = NULL, reverse = FALSE,
+  color = NULL, splitLine = TRUE, banded = FALSE, rotate = 0), xyflip = FALSE,
+  AxisAtZero = c(FALSE, TRUE), scale = TRUE, palette = NULL,
+  tooltip = TRUE, legend = TRUE, toolbox = c(TRUE, "cn"),
+  pos = list(title = 6, legend = 11, toolbox = 1, dataZoom = 6, dataRange = 8,
+  roam = 2), calculable = TRUE, asImage = FALSE,
   markLine = markLinesmooth, markLinesmooth = NULL, markPoint = NULL,
   theme = list(backgroundColor = NULL, borderColor = NULL, borderWidth = 1,
   width = NULL, height = NULL), ...)
@@ -29,7 +27,7 @@ echartR(data, x = NULL, y, z = NULL, series = NULL, weight = NULL,
 
 \item{x}{x variable, only omitable for histograms, pie, ring and rose charts.}
 
-\item{y}{y variable. No defaults.}
+\item{y}{y variable. If y is omitted, assign x to y.}
 
 \item{z}{z variable, only accept data/time variable to open time axis. Optional.}
 
@@ -69,14 +67,6 @@ echartR(data, x = NULL, y, z = NULL, series = NULL, weight = NULL,
 \item{stack}{Default to FALSE (do not stack). Used in stacked column, bar, line
 and area chart, etc.}
 
-\item{title}{title of the figure.}
-
-\item{subtitle}{subtitle of the figure.}
-
-\item{title_url}{url of the title}
-
-\item{subtitle_url}{url of the subtitle}
-
 \item{symbolList}{A vector assigning symbols. You can use an array of symbols.
 If the length of the symbols array is smaller than number of levels of the series,
 the last symbol will be used to extend the array. If you set symbolList NULL or
@@ -89,16 +79,6 @@ When assigned to 'none', no symbols are shown.}
 \item{dataZoom}{If dataZoom=\code{TRUE}, the default range is 0-100.
 You can assign a vector with length of 2 to dataZoom to control the initial range.
 E.g.,c(30,70) means from 30 to 70 percent at the initial view.}
-
-\item{dataRange}{The range to zoom the data. Default FALSE.
-Set dataRange=\code{c(High value label, Low value label)} to enable dataRange.}
-
-\item{splitNumber}{When dataRange is on, assign splitNumber to cut the range
-into discrete sections. Default to 0 (continuous range). In histogram,
-if splitNumber is set, the y variable will be cut into splitNumber groups.}
-
-\item{dataRangePalette}{You can independently assign palettes to dataRange
-(similar to overall palette). Default NULL (applies echarts defaults).}
 
 \item{xlab}{You can also omit xAxis, directly assign xAxis title.
 xlab has a higher priority than xAxis[['lab']].}

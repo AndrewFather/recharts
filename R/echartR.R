@@ -2729,7 +2729,10 @@ getYFromEChart <- function(chart, ...){
     }
     if ('timeline' %in% names(chart$x)){
         y <- sapply(chart$x$options, function(lst){
-            return(.getY(lst$series$data))
+            Ys <- sapply(lst$series, function(l) {
+                return(.getY(l$data))
+            })
+            return(Ys)
         })
     }else{
         y <- sapply(chart$x$series, function(lst) {

@@ -5,17 +5,15 @@
 \title{A lattice-like workaround function to generate Echarts}
 \usage{
 echartR(data, x = NULL, y = x, z = NULL, series = NULL, weight = NULL,
-  xcoord = NULL, ycoord = NULL, x1 = NULL, xcoord1 = NULL,
-  ycoord1 = NULL, type = "auto", stack = FALSE, symbolList = NULL,
-  dataZoom = NULL, xlab = NULL, xAxis = list(lab = xlab, color = NULL,
-  splitLine = TRUE, banded = FALSE, rotate = 0), ylab = NULL,
+  lat = NULL, lng = NULL, x1 = NULL, lat1 = NULL, lng1 = NULL,
+  type = "auto", stack = FALSE, xlab = NULL, xAxis = list(lab = xlab,
+  color = NULL, splitLine = TRUE, banded = FALSE, rotate = 0), ylab = NULL,
   yAxis = list(lab = ylab, color = NULL, splitLine = TRUE, banded = FALSE,
   rotate = 0), xlab1 = NULL, xAxis1 = list(lab = xlab1, series = NULL,
   reverse = FALSE, color = NULL, splitLine = TRUE, banded = FALSE, rotate = 0),
   ylab1 = NULL, yAxis1 = list(lab = ylab1, series = NULL, reverse = FALSE,
   color = NULL, splitLine = TRUE, banded = FALSE, rotate = 0), xyflip = FALSE,
-  AxisAtZero = c(FALSE, TRUE), scale = TRUE, palette = NULL,
-  tooltip = TRUE, legend = TRUE, toolbox = c(TRUE, "cn"),
+  AxisAtZero = c(FALSE, TRUE), scale = TRUE, tooltip = TRUE,
   pos = list(title = 6, legend = 11, toolbox = 1, dataZoom = 6, dataRange = 8,
   roam = 2), calculable = TRUE, asImage = FALSE,
   markLine = markLinesmooth, markLinesmooth = NULL, markPoint = NULL,
@@ -35,15 +33,15 @@ echartR(data, x = NULL, y = x, z = NULL, series = NULL, weight = NULL,
 
 \item{weight}{weight variable, used in histogram, bubble, etc.}
 
-\item{xcoord}{Lattitude variable, only for point/line-marking map.}
+\item{lat}{Lattitude variable, only for point/line-marking map.}
 
-\item{ycoord}{Longitude variable, only for point/line-marking map.}
+\item{lng}{Longitude variable, only for point/line-marking map.}
 
 \item{x1}{Backup x variable, only for line-marking map, force andchord chart.}
 
-\item{xcoord1}{Backup lattitude variable, only for line-marking map.}
+\item{lat1}{Backup lattitude variable, only for line-marking map.}
 
-\item{ycoord1}{Backup Longitude variable, only for line-marking map.}
+\item{lng1}{Backup Longitude variable, only for line-marking map.}
 
 \item{type}{options \code{'scatter', 'point', 'bubble', 'bar', 'line', 'map',
 'k', 'pie', 'ring', 'rose','area', 'chord', 'force', 'tree', 'treemap',
@@ -66,19 +64,6 @@ echartR(data, x = NULL, y = x, z = NULL, series = NULL, weight = NULL,
 
 \item{stack}{Default to FALSE (do not stack). Used in stacked column, bar, line
 and area chart, etc.}
-
-\item{symbolList}{A vector assigning symbols. You can use an array of symbols.
-If the length of the symbols array is smaller than number of levels of the series,
-the last symbol will be used to extend the array. If you set symbolList NULL or
-leave it unset, the function circulates the default symbol list of Echarts:
-\code{c('circle', 'rectangle', 'triangle', 'diamond', 'emptyCircle', 'emptyRectangle',
-'emptyTriangle', 'emptyDiamond')}. You can also assign non-standard symbols,
-such as \code{'heart', 'droplet', 'pin', 'arrow', 'star5', 'star6', 'star7'}, etc.
-When assigned to 'none', no symbols are shown.}
-
-\item{dataZoom}{If dataZoom=\code{TRUE}, the default range is 0-100.
-You can assign a vector with length of 2 to dataZoom to control the initial range.
-E.g.,c(30,70) means from 30 to 70 percent at the initial view.}
 
 \item{xlab}{You can also omit xAxis, directly assign xAxis title.
 xlab has a higher priority than xAxis[['lab']].}
@@ -110,47 +95,7 @@ The data is fliped up when reverse is set TRUE.}
 
 \item{scale}{Rescale the axes based on min and max values. Default TRUE.}
 
-\item{palette}{Overall palette. Default NULL (echarts defaults). \cr
-Palette names: \cr
-\itemize{
- \item Aetna palettes: Including 'aetnagreen', 'aetnablue', 'aetnaviolet',
- 'aetnaorange', 'aetnateal', 'aetnacranberry' \cr
- \item \link{RColorBrewer} palettes: Including 'BrBG', 'PiYG', 'PRGn', 'PuOr', 'RdBu',
- 'RdGy', 'RdYlBu', 'RdYlGn', 'Spectral', 'Accent', 'Dark2', 'Paired', 'Pastel1',
- 'Pastel2', 'Set1', 'Set2', 'Set3', 'Blues', 'BuGn', 'BuPu', 'GnBu', 'Greens',
- 'Greys', 'Oranges', 'OrRd', 'PuBu', 'PuBuGn', 'PuRd', 'Purples', 'RdPu', 'Reds',
- 'YlGn', 'YlGnBu', 'YlOrBr', 'YlOrRd' \cr
- \item \link{ggthemes} palettes: 'calc', 'economist', 'economist_white', 'economist_stata',
- 'excel', 'exel_fill', 'excel_old', 'excel_new', 'few', 'fivethirtyeight',
- 'gdocs', 'pander', 'tableau', 'stata', 'stata1','stata1r','statamono',
- 'tableau20', 'tableau10medium', 'tableaugray', 'tableauprgy', 'tableaublrd',
- 'tableaugnor', 'tableaucyclic', 'tableau10light', 'tableaublrd12', 'tableauprgy12',
- 'tableaugnor12','hc','darkunica', 'solarized','solarized_red', 'solarized_yellow',
- 'solarized_orange','solarized_magenta','solarized_violet', 'solarized_blue',
- 'solarized_cyan', 'solarized_green', 'wsj', 'wsj_rgby', 'wsj_red_green',
- 'wsj_black_green', 'wsj_dem_rep', 'colorblind', 'trafficlight' \cr
- \item Other palettes: 'rainbow', 'terrain', 'topo', 'heat', 'cm'
-}
-Usage: \cr
-\itemize{
- \item Do not set the value and function defaults will be loaded \cr
- \item Set palette=NULL to use Echarts defaults \cr
- \item Set palette=palette name to assign any palette listed above \cr
- \item Set palette=\code{palette name(number)} to restrict number of colors within the
- palette (e.g., \code{palette='calc(3)'} picks 3 colors out of 'calc' RANDOMLY) \cr
- \item Set palette=\code{c(color1, color2, color3, ...)} to define a palette vector,
- made of which either color names or Hex expressions. Use \code{\link{colors}()} to check
- available color names and check the effects using \code{demo(colors)}.
-}}
-
 \item{tooltip}{Mouse tip effects swtich. Default TRUE.}
-
-\item{legend}{Whether to show the legend. Default to TRUE. Can also be a list
-length 2: \code{list(mode='single/multiple', select=vector(...))}. E.g.,
-\code{list(mode='single', select='Male')} means singular choice, with series 'Male'
-selected at the initial view. legend=FALSE closes legend.}
-
-\item{toolbox}{Echarts Tool box switch. Default TRUE.}
 
 \item{pos}{Position of image elements which are integers 1-12.
 Title position default to 6 (o'clock), which means bottom middle.

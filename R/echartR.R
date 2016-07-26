@@ -57,8 +57,6 @@
 #' Defaults to legend, toolbox, dataRange, dataZoom, roamController are
 #' 11, 1, 6, 8, 2, respectively. Default pos=list(title=6, legend=11, toolbox=1,
 #' dataZoom=6, dataRange=8, roam=2)
-#' @param calculable Calculable switch (Echarts patent).
-#' @param asImage renderAsImage switch.Deafult to FALSE.
 #' @param markLine Short form: \cr
 #' \tabular{llll}{
 #'  [col 1] series name|index \tab [col 2] line name \tab [col 3] Line type
@@ -108,8 +106,6 @@
 #'  as coordinates. In map charts, these coordinates should be lattitudes and longitudes.
 #'  \code{t(c('male',NA,100,0,5,TRUE))} opens light effects of series 'male'.
 #' }
-#' @param theme Default theme=\code{list(backgroundColor=color name/value,
-#' borderColor=color name/value, borderWidth=1)}
 #' @param ... elipsis
 #'
 #' @return An echart object
@@ -142,10 +138,7 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
                   tooltip=TRUE,
                   pos=list(title=6, legend=11, toolbox=1, dataZoom=6,
                            dataRange=8, roam=2),
-                  calculable=TRUE, asImage=FALSE,
                   markLine=markLinesmooth, markLinesmooth=NULL, markPoint=NULL,
-                  theme=list(backgroundColor=NULL, borderColor=NULL,
-                             borderWidth=1, width=NULL, height=NULL),
                   ...){
 
     #--------recognize variable names--------------------------
@@ -759,8 +752,8 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
         )
         for (i in 1:nrow(data)){
             lstSeries[[1]][['data']][[i]]<- list(
-                value=data[i,yvar],name=as.character(data[i,xvar]),
-                #itemStyle=list(normal=list(color=sample(unlist(lstColor),1)))
+                value=data[i,yvar],name=as.character(data[i,xvar])
+                #,itemStyle=list(normal=list(color=sample(unlist(lstColor),1)))
             )
         }
     }else if (type[1] %in% c('line','area')){
@@ -1495,80 +1488,13 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
         }
             }
 
-
-
-        #----------Theme--------------
-        theme <- mergeList(list(backgroundColor=NULL, borderColor=NULL, borderWidth=1),
-                           theme)
-        lstbackgroundColor <- NULL
-        if (!is.null(theme[['backgroundColor']]) &
-            !is(try(col2rgb(theme[['backgroundColor']])),"try-error")){
-            lstbackgroundColor <- theme[['backgroundColor']]
-            if (substr(theme[['backgroundColor']],1,1)!="#"){
-                bgColor <- as.vector(col2rgb(theme[['backgroundColor']]))
-                vecColor <- c(255,255,255)-bgColor
-            }else{
-                bgColor <- paste0("0x",substring(theme[['backgroundColor']],
-                                                 seq(2,8,2),seq(3,9,2)))
-                bgColor <- strtoi(bgColor)
-                vecColor <- rep(255,4) - bgColor
-            }
-            backColor <- rgba(bgColor)
-            textColor <- rgba(vecColor)
-            if (!is.null(lstTitle)) lstTitle[['textStyle']][['color']] <- textColor
-            #if (!is.null(lstLegend)) lstLegend[['textStyle']][['color']] <- textColor
-            #if (!is.null(lstdataRange)) lstdataRange[['textStyle']][['color']] <- textColor
-            for (ser in 1:length(lstSeries)){
-                if (length(lstSeries[[ser]][['data']])==0){
-                    if (is.null(lstSeries[[ser]][['itemStyle']][['normal']][['areaStyle']])){
-                        if (is.null(lstSeries[[ser]][['itemStyle']][['normal']])){
-                            lstSeries[[ser]][['itemStyle']][['normal']] <- list()
-                        }
-                    }
-                    lstSeries[[ser]][['itemStyle']][['normal']][['areaStyle']]<-
-                        list(color=backColor)
-                }
-            }
-        }
-        if (!is.null(theme[['borderColor']]) &
-            !is(try(col2rgb(theme[['borderColor']])),"try-error")){
-            borderColor <- rgba(as.vector(col2rgb(theme[['borderColor']])))
-            for (ser in 1:length(lstSeries)){
-                if (length(lstSeries[[ser]][['data']])==0){
-                    if (is.null(lstSeries[[ser]][['itemStyle']][['normal']])) {
-                        lstSeries[[ser]][['itemStyle']][['normal']] <-
-                            list(borderColor=borderColor)
-                    }else{
-                        lstSeries[[ser]][['itemStyle']][['normal']][['borderColor']] <-
-                            borderColor
-                    }
-                }
-            }
-        }
-        if (theme[['borderWidth']]!=1){
-            for (ser in 1:length(lstSeries)){
-                if (length(lstSeries[[ser]][['data']])==0){
-                    if (is.null(lstSeries[[ser]][['itemStyle']][['normal']])) {
-                        lstSeries[[ser]][['itemStyle']][['normal']] <-
-                            list(borderWidth=theme[['borderWidth']])
-                    }else{
-                        lstSeries[[ser]][['itemStyle']][['normal']][['borderWidth']] <-
-                            theme[['borderWidth']]
-                    }
-                }
-            }
-        }
-
-
         #-------Make plot-------------
         if (is.null(z)){
             chartobj <- list(
                 tooltip=lstTooltip,
-                calculable=calculable,
                 series=lstSeries
             )
 
-            if (!is.null(asImage)) chartobj[['renderAsImage']] <- asImage
             if (!is.null(lstbackgroundColor)) chartobj[['backgroundColor']] <- lstbackgroundColor
             #if (!is.null(lstColor)) chartobj[['color']] <- lstColor
             if (try(exists("lstGrid"),T)) chartobj[['grid']] <- lstGrid
@@ -1596,12 +1522,9 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
             if (t==1){ # the 1st timeslice
                 chartobj <- list(list(
                     tooltip=lstTooltip,
-                    calculable=calculable,
                     series=lstSeries
                 ))
 
-
-                if (!is.null(asImage)) chartobj[[t]][['renderAsImage']] <- asImage
                 if (!is.null(lstbackgroundColor)) chartobj[[t]][['backgroundColor']] <-
                         lstbackgroundColor
                 #if (!is.null(lstColor)) chartobj[[t]][['color']] <- lstColor

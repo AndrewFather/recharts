@@ -13,7 +13,8 @@ setLegend(chart, show = TRUE, pos = 11, selected = NULL, itemGap = 5,
 
 \item{show}{Logical. Show the legend or not. Default TRUE.}
 
-\item{pos}{Clock position of the legend. Default 11. Refer to \code{\link{vecPos}}.}
+\item{pos}{Clock position of the legend. Default 11. Refer to \code{\link{vecPos}}.
+Or you can define the position vector \code{c(x, y, orient)} yourself.}
 
 \item{selected}{A vector of series names that are selected on load. If you assign 'none',
 then none of the series will be selected in the beginning.}

@@ -16,10 +16,11 @@ the last symbol will be used to extend the array.
  \item If you set symbolList NULL or
 leave it unset, the function circulates the default symbol list of Echarts:
 \code{c('circle', 'rectangle', 'triangle', 'diamond', 'emptyCircle', 'emptyRectangle',
-'emptyTriangle', 'emptyDiamond')}. \cr
+'emptyTriangle', 'emptyDiamond')} (\strong{case sensitive}).\cr
  \item You can also assign non-standard symbols,
-such as \code{'heart', 'droplet', 'pin', 'arrow', 'star5', 'star6', 'star7', 'star8'}, etc. \cr
- \item When assigned to \strong{'none', no symbols are shown}, you can thus yield lines
+such as \code{'heart', 'droplet', 'pin', 'arrow', 'star5', 'star6', 'star7', 'star8'},
+etc. (\strong{case sensitive})\cr
+ \item When assigned to \strong{'none', no symbol is shown}, you can thus yield lines
 without points on it.  \cr
  \item The elements not in the above eligible symbols list will be eliminated.
 }}
@@ -31,7 +32,8 @@ A modified echarts object.
 }
 \description{
 When an echart object is generated, you can modify it by setting toolbox using \%>\%.
-You can modify symbolList of the echarts object using this function.
+You can modify symbolList of the echarts object using this function. The symbolList
+will be then mapped to data series in order.
 }
 \examples{
 \dontrun{

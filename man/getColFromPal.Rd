@@ -36,11 +36,12 @@ color vectors
 }
 \description{
 Get hex color vector of a named palette from \code{\link{RColorBrewer}}, \code{\link{ggthemes}}
-or \code{\link{grDevices}}. You can \code{\link{scale::show_col}} the vector to
+or \code{\link{grDevices}}. You can \code{\link{show_col}} the vector to
 see the effects.
 }
 \examples{
 \dontrun{
+library(scales)
 show_col(getColFromPal('tableau20'))
 show_col(getColFromPal('hc'))
 }

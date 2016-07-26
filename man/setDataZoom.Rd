@@ -12,7 +12,8 @@ setDataZoom(chart, show = TRUE, pos = 6, range = NULL, pos.adjust = 0,
 
 \item{show}{logical. Show the dataZoom control if TRUE.}
 
-\item{pos}{the clock-position of dataZoom, refert to \code{\link{vecPos}}}
+\item{pos}{the clock-position of dataZoom, refert to \code{\link{vecPos}}. You can
+define a vector \code{c(x, y, orient)} yourself.}
 
 \item{range}{A vector of \code{c(min, max)}. Cannot be out of the frame c(0, 100)}
 

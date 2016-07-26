@@ -15,10 +15,8 @@ echartR(data, x = NULL, y = x, z = NULL, series = NULL, weight = NULL,
   color = NULL, splitLine = TRUE, banded = FALSE, rotate = 0), xyflip = FALSE,
   AxisAtZero = c(FALSE, TRUE), scale = TRUE, tooltip = TRUE,
   pos = list(title = 6, legend = 11, toolbox = 1, dataZoom = 6, dataRange = 8,
-  roam = 2), calculable = TRUE, asImage = FALSE,
-  markLine = markLinesmooth, markLinesmooth = NULL, markPoint = NULL,
-  theme = list(backgroundColor = NULL, borderColor = NULL, borderWidth = 1,
-  width = NULL, height = NULL), ...)
+  roam = 2), markLine = markLinesmooth, markLinesmooth = NULL,
+  markPoint = NULL, ...)
 }
 \arguments{
 \item{data}{data.frame. No defaults.}
@@ -103,10 +101,6 @@ Defaults to legend, toolbox, dataRange, dataZoom, roamController are
 11, 1, 6, 8, 2, respectively. Default pos=list(title=6, legend=11, toolbox=1,
 dataZoom=6, dataRange=8, roam=2)}
 
-\item{calculable}{Calculable switch (Echarts patent).}
-
-\item{asImage}{renderAsImage switch.Deafult to FALSE.}
-
 \item{markLine}{Short form: \cr
 \tabular{llll}{
  [col 1] series name|index \tab [col 2] line name \tab [col 3] Line type
@@ -158,9 +152,6 @@ Examples: \cr
  as coordinates. In map charts, these coordinates should be lattitudes and longitudes.
  \code{t(c('male',NA,100,0,5,TRUE))} opens light effects of series 'male'.
 }}
-
-\item{theme}{Default theme=\code{list(backgroundColor=color name/value,
-borderColor=color name/value, borderWidth=1)}}
 
 \item{...}{elipsis}
 }

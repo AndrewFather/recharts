@@ -18,7 +18,8 @@ setToolbox(chart, show = TRUE, language = "cn", controls = c("mark",
 \item{controls}{which widgets to show. Default \code{'mark', 'dataZoom', 'dataView', 'magicType',
 'restore', 'saveAsImage'}.}
 
-\item{pos}{the clock-position of toolbox, refer to \code{\link{vecPos}}}
+\item{pos}{the clock-position of toolbox, refer to \code{\link{vecPos}}. Or you can
+define a vector \code{c(x, y, orient)} yourself.}
 
 \item{...}{elipsis}
 }

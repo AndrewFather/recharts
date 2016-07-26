@@ -25,9 +25,10 @@ Get color vector from a palette/color name. It is wider than \code{\link{getColF
 }
 \examples{
 \dontrun{
-show_col(recharts:::getColors(NULL))
-show_col(recharts:::getColors("terrain"))
-show_col(recharts:::getColors(c('red', 'gold', 'skyblue')))
+library(scales)
+show_col(getColors(NULL))
+show_col(getColors("terrain"))
+show_col(getColors(c('red', 'gold', 'skyblue')))
 }
 }
 \seealso{

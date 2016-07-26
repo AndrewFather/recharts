@@ -142,15 +142,15 @@ checkColorDiff <- function(col1, col2, ...){
 #' @return Inverted hex color
 #' @export
 #'
+#' @seealso \code{\link{hsv}}, \code{\link{rgb2hsv}}, \code{\link{rgb}},
 #' @examples
 #' \dontrun{
-#' col1 <- invertColor('darkred', 'o')
-#' col2 <- invertColor('darkred', 'h')
-#' col3 <- invertColor('darkred', 'l')
-#' col4 <- invertColor('darkred', c('h', 'l'))
-#' col5 <- invertColor('darkred', c('s', 'l'))
+#' col <- sapply(list('o', 'h', 'l', 's', 'b', c('h', 'l'), c('h', 's'),
+#'               c('l', 's'), c('h', 's', 'l')), function(mode) {
+#'               return(invertColor('darkred', mode))
+#'         })
 #' library(scales)
-#' show_col(c('darkred', col1, col2, col3, col4, col5))
+#' show_col(c('darkred', unlist(col)))
 #' }
 invertColor <- function(color, mode=c('bw', 'opposite', 'hue', 'saturation',
                                       'lumination', ''),
@@ -163,7 +163,6 @@ invertColor <- function(color, mode=c('bw', 'opposite', 'hue', 'saturation',
     modeAbbrev <- tolower(substr(mode, 1, 1))
     rgb <- col2rgb(col)
     hsv <- rgb2hsv(rgb)
-
 
     if ('b' %in% modeAbbrev){  # black and white invert
         bright <- sum(c(299, 587, 114) * rgb) / 1000
@@ -416,4 +415,5 @@ convPct2Num <- function(vector){
         return(rep(NA,length(vector)))
     }
 }
+
 

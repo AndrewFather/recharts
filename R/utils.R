@@ -81,7 +81,7 @@ rgba <- function(vecrgb, ...){
 
     if (is.list(vecrgb)) rgb <- as.vector(unlist(vecrgb))
     if (length(vecrgb) == 1) vecrgb <- c(vecrgb, unlist(list(...)))
-    if (min(vecrgb,na.rm=TRUE)<0 | max(vecrgb,na.rm=TRUE)>255) {
+    if (min(vecrgb, na.rm=TRUE)<0 || max(vecrgb, na.rm=TRUE)>255) {
         stop("All elements should be numeric 0-255!")
     }
     if (length(vecrgb[!is.na(vecrgb)]) == 3){
@@ -90,10 +90,96 @@ rgba <- function(vecrgb, ...){
         #return(rgb(red=vecrgb[1],green=vecrgb[2],blue=vecrgb[3],alpha=vecrgb[4],
         #           max=255))
         return(paste0('rgba(',vecrgb[1],',',vecrgb[2],',',vecrgb[3],',',
-                      as.numeric(ifelse(vecrgb[4]<=1, vecrgb[4], vecrgb[4]/255)),
+                      as.numeric(ifelse(vecrgb[4]<=1, vecrgb[4],
+                                        round(vecrgb[4]/255, 4))),
                       ')'))
     }else{
         stop("Must be of length 3 or 4!")
+    }
+}
+
+checkColorDiff <- function(col1, col2, ...){
+    stopifnot((col1 %in% colors() || grepl("#[[:xdigit:]]{6}", col1) ||
+                   grepl("^rgba\\(", col1)) &&
+              (col2 %in% colors() || grepl("#[[:xdigit:]]{6}", col2) ||
+                   grepl("^rgba\\(", col2)))
+    if (grepl("^rgba\\(", col1)){
+        col1 <- as.numeric(unlist(strsplit(col1, "[\\(,\\)]")[[1]][2:5]))
+        col1 <- rgb(col1[1], col1[2], col1[3], col1[4]*255, max=255)
+    }else{
+        col1 <- getColors(col1)
+    }
+    if (grepl("^rgba\\(", col2)){
+        col2 <- as.numeric(unlist(strsplit(col2, "[\\(,\\)]")[[1]][2:5]))
+        col2 <- rgb(col2[1], col2[2], col2[3], col2[4]*255, max=255)
+    }else{
+        col2 <- getColors(col2)
+    }
+
+    bright1 <- sum(c(299, 587, 114) * col2rgb(col1))/1000
+    bright2 <- sum(c(299, 587, 114) * col2rgb(col2))/1000
+    brightDiff <- abs(bright1 - bright2)
+    hueDiff <- sum(abs(col2rgb(col1, TRUE) - col2rgb(col2, TRUE)))
+    return(data.frame('Diff' = c(brightDiff, hueDiff),
+                      'Suffiecient'=c(brightDiff >= 125, hueDiff >= 500),
+                      row.names=c('Bright', 'Hue')))
+}
+
+#' Invert A Color to Its Conplementary Color
+#'
+#' @param color A hex or named color, or color in 'rgba(R, G, B, A)' string.
+#' @param mode One or a vector of modes combined. You can only input the first letter.
+#' Default 'bw', which is most useful in textStyles.
+#' \itemize{
+#'  \item \code{bw}: black and white invertion
+#'  \item \code{opposite}: complete invertion to get an opposite color
+#'  \item \code{hue}: only invert hue in terms of \code{\link{hsv}}
+#'  \item \code{saturation}: only invert saturation in terms of \code{\link{hsv}}
+#'  \item \code{lumination} only invert lumination in terms of \code{\link{hsv}}
+#' }
+#' @param ... Elipsis
+#'
+#' @return Inverted hex color
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' col1 <- invertColor('darkred', 'o')
+#' col2 <- invertColor('darkred', 'h')
+#' col3 <- invertColor('darkred', 'l')
+#' col4 <- invertColor('darkred', c('h', 'l'))
+#' col5 <- invertColor('darkred', c('s', 'l'))
+#' library(scales)
+#' show_col(c('darkred', col1, col2, col3, col4, col5))
+#' }
+invertColor <- function(color, mode=c('bw', 'opposite', 'hue', 'saturation',
+                                      'lumination', ''),
+                        ...){
+    if (! grepl("^rgba\\(", color)) col <- color <- getColors(color)
+    if (grepl("^rgba\\(", color)){
+        col <- as.numeric(unlist(strsplit(col, "[\\(,\\)]")[[1]][2:5]))
+        col <- rgb(col[1], col[2], col[3], col[4]*255, max=255)
+    }
+    modeAbbrev <- tolower(substr(mode, 1, 1))
+    rgb <- col2rgb(col)
+    hsv <- rgb2hsv(rgb)
+
+
+    if ('b' %in% modeAbbrev){  # black and white invert
+        bright <- sum(c(299, 587, 114) * rgb) / 1000
+        if (bright >= 128) return("#000000")
+        else return("#FFFFFF")
+    }else if ('o' %in% modeAbbrev) {
+        rgb_neg <- rep(255, 3) - rgb
+        return(rgb(rgb_neg[1], rgb_neg[2], rgb_neg[3], max=255))
+    }else{
+        if ('h' %in% modeAbbrev)
+            hsv[1] <- ifelse(hsv[1] > 0.5, hsv[1] - 0.5, hsv[1] + 0.5)
+        if ('s' %in% modeAbbrev)
+            hsv[2] <- 1 - hsv[2]
+        if ('l' %in% modeAbbrev)
+            hsv[3] <- 1 - hsv[3]
+        return(hsv(hsv[1], hsv[2], hsv[3]))
     }
 }
 
@@ -308,7 +394,7 @@ reheadHTMLTable <- function(dataset, heading, footRows=0,
     }
 }
 #------------percent format---------------
-pct <- function(vector,digits=0){
+convNum2Pct <- function(vector,digits=0){
     if (is.na(digits)) digits=0
     if (is.numeric(vector)){
         vec <- vector
@@ -319,7 +405,7 @@ pct <- function(vector,digits=0){
         return(vector)
     }
 }
-de_pct <- function(vector){
+convPct2Num <- function(vector){
     if (any(grepl("[:space:]*((^\\d+[\\d\\.]\\d+)|\\d+)%$",vector))){
         vec <- vector
         which <- which(grepl("[:space:]*((^\\d+[\\d\\.]\\d+)|\\d+)%$",vector))
@@ -330,9 +416,4 @@ de_pct <- function(vector){
         return(rep(NA,length(vector)))
     }
 }
-initCap <- function(x) {
-    if (is.factor(x)) x <- as.character(x)
-    s <- strsplit(x, " ")[[1]]
-    paste(toupper(substring(s, 1, 1)), substring(s, 2),
-          sep = "", collapse = " ")
-}
+

@@ -416,4 +416,84 @@ convPct2Num <- function(vector){
     }
 }
 
+#' \%ops=\% (Javascript Operator Assignment)
+#'
+#' If you are familiar with \code{Javascript}, you may miss +=, -=, *=, /= very much.
+#' @aliases "%+=%" "%-=%" "%*=%" %/=% %^=% %**=% %\\=% %%%=% %%=%
+#' @param lhs Left hand side argument.
+#' @param rhs Right hand side argument.
+#' @param envir Environment for operation to take place.
+#' @param operator The operator function to choose. E.g., \code{+, -, *, /, \%\%, ^, **, \\}.
+#' @return Modified lhs
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' a <- 3
+#' a %ops=% 2  # nothing happens
+#' a %+=% 2    # get 5
+#' a %-=% 2    # get 3
+#' a %*=% 2    #
+#' a %/=% 2
+#' a %^=% 2
+#' a %=% 2
+#' }
+#' @rdname JS.operatorAssignment
+#'
+"%ops=%" <- function(
+    lhs, rhs, envir=parent.frame(), operator=NULL){
+    funcName <- as.character(match.call()[1])
+    operator <- strsplit(funcName, "[%=]")[[1]][2]
+    if (! operator %in% c("+", "-", "*", "/", "\\", "^", "**", "%%", "%")) {
+        operator <- NULL
+    }else{
+        if (operator == "**") operator <- "^"
+        if (operator %in% c("\\", "%")) operator <- "%%"
+    }
+    if (!is.null(operator)){
+        obj <- as.character(substitute(lhs))
+        out <- eval(parse(text=paste0("\"", operator, "\"(", lhs, ",", rhs, ")")))
+        if (lhs == substitute(lhs)){
+            return(out)
+        }else{
+            assign(obj, out, envir=envir)
+        }
+    }
+}
+
+#' @export
+#' @rdname JS.operatorAssignment
+"%+=%" <- "%ops=%"
+
+#' @export
+#' @rdname JS.operatorAssignment
+"%-=%" <- "%ops=%"
+
+#' @export
+#' @rdname JS.operatorAssignment
+"%*=%" <- "%ops=%"
+
+#' @export
+#' @rdname JS.operatorAssignment
+"%/=%" <- "%ops=%"
+
+#' @export
+#' @rdname JS.operatorAssignment
+"%^=%" <- "%ops=%"
+
+#' @export
+#' @rdname JS.operatorAssignment
+"%**=%" <- "%ops=%"
+
+#' @export
+#' @rdname JS.operatorAssignment
+"%\\=%" <- "%ops=%"
+
+#' @export
+#' @rdname JS.operatorAssignment
+"%%%=%" <- "%ops=%"
+
+#' @export
+#' @rdname JS.operatorAssignment
+"%ops=%" <-"%ops=%"
 

@@ -97,10 +97,14 @@ g \%>\% setTheme(c('red', 'gold', 'deepskyblue'), 'gray95',
 \references{
 \url{http://echarts.baidu.com/echarts2/doc/option.html#title~backgroundColor}
 \url{http://echarts.baidu.com/echarts2/doc/option.html#title~color}
+\url{http://colorbrewer2.org}
 \url{http://echarts.baidu.com/echarts2/doc/option.html#title~renderAsImage}
 \url{http://echarts.baidu.com/echarts2/doc/option.html#title~calculable}
 \url{http://echarts.baidu.com/echarts2/doc/option.html#title~animation}
 \url{http://echarts.baidu.com/echarts2/doc/option.html#title~calculableColor}
 \url{http://echarts.baidu.com/echarts2/doc/option.html#title~calculableHolderColor}
+}
+\seealso{
+\code{\link{brewer.pal}}, \code{\link{colors}}
 }
 

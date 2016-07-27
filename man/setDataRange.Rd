@@ -16,7 +16,7 @@ setDataRange(chart, show = TRUE, pos = 8, valueRange = NULL,
 \item{show}{logical. Show the dataRange control if TRUE.}
 
 \item{pos}{the clock-position of dataRange, default 8. Refer to \code{\link{vecPos}}.
-Or you can define the position vector \code{c(x, y , orient)} yourself.}
+Or you can define the position vector \code{c(x, y, orient)} yourself.}
 
 \item{valueRange}{The range of the dataRange bar in form of \code{c(min, max)}.
 If NULL, echarts default will be used.}

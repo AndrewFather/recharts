@@ -2,7 +2,7 @@
 % Please edit documentation in R/options.R
 \name{getColors}
 \alias{getColors}
-\title{Get Hex Color Vector}
+\title{Get Hex Color Vector (Not Exported)}
 \usage{
 getColors(palette, ...)
 }

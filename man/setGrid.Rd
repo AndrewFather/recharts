@@ -37,11 +37,12 @@ A modified echarts object
 \description{
 When an echart object is generated, you can modify it by setting and tuning grid using \%>\%.
 It is recommended to put \code{setGrid} at the end.
+Only applicable for \code{scatter, point, bubble, line, area, bar, histogram}.
 }
 \examples{
 \dontrun{
 g <- iris \%>\% echartR(x=Sepal.Width, y=Petal.Width, series=Species)
-g \%>\% setGrid(x=40, y=40, x2=60, y2=20, backgroundColor='lightgrey')
+g \%>\% setGrid(x=40, y=30, x2=60, y2=30, backgroundColor='gray90')
 }
 }
 

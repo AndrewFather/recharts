@@ -16,10 +16,10 @@ the last symbol will be used to extend the array.
  \item If you set symbolList NULL or
 leave it unset, the function circulates the default symbol list of Echarts:
 \code{c('circle', 'rectangle', 'triangle', 'diamond', 'emptyCircle', 'emptyRectangle',
-'emptyTriangle', 'emptyDiamond')} (\strong{case sensitive}).\cr
+'emptyTriangle', 'emptyDiamond')}.\cr
  \item You can also assign non-standard symbols,
 such as \code{'heart', 'droplet', 'pin', 'arrow', 'star5', 'star6', 'star7', 'star8'},
-etc. (\strong{case sensitive})\cr
+etc.\cr
  \item When assigned to \strong{'none', no symbol is shown}, you can thus yield lines
 without points on it.  \cr
  \item The elements not in the above eligible symbols list will be eliminated.
@@ -37,8 +37,8 @@ will be then mapped to data series in order.
 }
 \examples{
 \dontrun{
-g <- iris \%>\% echartR(x=Sepal.Width, y=Petal.Width, series=Species, type='scatter')
-g \%>\% setSymbolList('emptyCircle')
+g <- iris \%>\% echartR(x=Sepal.Width, y=Petal.Width, series=Species)
+g \%>\% setSymbolList('emptycircle')
 g \%>\% setSymbolList(c('heart', 'pin'))
 }
 }

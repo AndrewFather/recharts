@@ -142,6 +142,7 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
                   ...){
 
     #--------recognize variable names--------------------------
+    vArgs <- match.arg()
     vArgs <- list(x=substitute(x), y=substitute(y), z=substitute(z),
                   x1=substitute(x1), series=substitute(series),
                   weight=substitute(weight), lat=substitute(lat),
@@ -366,13 +367,9 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
 
         #---------timeline--------------
         if (!is.null(z)){
-            lstTimeline <- list(data=timeslice, autoPlay=TRUE, playInterval=2000)
+            lstTimeline <- list(data=timeslice, autoPlay=TRUE)
             attr(lstTimeline, 'sliceby') <- zvar
             if (!is.null(title) & pos[['title']] %in% 5:7) lstTimeline[['y2']] <- 50
-            #if (!is.null(dataZoom) & pos[['dataZoom']] %in% 5:7) {
-            #    lstTimeline[['y2']] <- ifelse(is.null(lstTimeline[['y2']]),0,
-            #                                  lstTimeline[['y2']])+ 30
-            #}
         }
 
         #-------Tooltip--------------
@@ -412,24 +409,6 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
             }
         }else{
             lstTooltip = list(show=FALSE)
-        }
-
-
-        #---------Grid------------------
-        lstGrid <- NULL
-        bottomSpace <- 20
-        if (pos[['title']] %in% 5:7) {
-            bottomSpace <- 60
-            #if (!is.null(subtitle)) bottomSpace <- bottomSpace+20
-        }
-        if (!is.null(z)) bottomSpace <- bottomSpace + 50
-        #if (!is.null(dataZoom) && pos[['dataZoom']] %in% 5:7){
-        #    bottomSpace <- bottomSpace + 30
-        #}
-        lstGrid <- list(y2=ifelse(bottomSpace<60,60,bottomSpace))
-        if (type[1] %in% c('pie','ring','rose','funnel','pyramid','map','chord','force',
-                           'chordribbon','radar','radarfill','wordcloud','gauge')){
-            lstGrid <- NULL
         }
 
         #------------Axis-------------
@@ -1497,7 +1476,7 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
 
             if (!is.null(lstbackgroundColor)) chartobj[['backgroundColor']] <- lstbackgroundColor
             #if (!is.null(lstColor)) chartobj[['color']] <- lstColor
-            if (try(exists("lstGrid"),T)) chartobj[['grid']] <- lstGrid
+            #if (try(exists("lstGrid"),T)) chartobj[['grid']] <- lstGrid
             #if (!is.null(lstSymbol)) chartobj[['symbolList']] <- lstSymbol
             #if (!is.null(lstdataZoom)) chartobj[['dataZoom']] <- lstdataZoom
             #if (!is.null(lstdataRange)) chartobj[['dataRange']] <- lstdataRange
@@ -1528,7 +1507,7 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
                 if (!is.null(lstbackgroundColor)) chartobj[[t]][['backgroundColor']] <-
                         lstbackgroundColor
                 #if (!is.null(lstColor)) chartobj[[t]][['color']] <- lstColor
-                if (try(exists("lstGrid"),TRUE)) chartobj[[t]][['grid']] <- lstGrid
+                #if (try(exists("lstGrid"),TRUE)) chartobj[[t]][['grid']] <- lstGrid
                 #if (!is.null(lstSymbol)) chartobj[[t]][['symbolList']] <- lstSymbol
                 #if (!is.null(lstdataZoom)) chartobj[[t]][['dataZoom']] <- lstdataZoom
                 #if (!is.null(lstdataRange)) chartobj[[t]][['dataRange']] <- lstdataRange
@@ -1561,7 +1540,7 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
     }else{
         output <- echart(chartobj)
     }
-    output <- output %>% setToolbox() %>% setLegend(TRUE)
+    output <- output %>% setToolbox() %>% setLegend(show=TRUE)
     if (!is.null(theme$width)) if (is.numeric(theme$width)) output$width <- theme$width
     if (!is.null(theme$height)) if (is.numeric(theme$height)) output$height <- theme$height
     if (all(is.na(Data[,vArgs$y]))) return('') else return(output)

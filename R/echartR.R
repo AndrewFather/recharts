@@ -117,6 +117,7 @@
 #' @seealso \code{\link{ggthemes}} \code{\link{RColorBrewer}} \code{\link{echart}}
 #' @examples
 #' \dontrun{
+#'
 #' echartR(iris, x=Sepal.Width, y=Petal.Width, series=Species, type='scatter')
 #'
 #' echartR(iris, x=~Sepal.Width, y=~Petal.Width, series=~Species)

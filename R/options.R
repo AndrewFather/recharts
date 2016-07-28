@@ -28,23 +28,23 @@ eAxis = function(
     x = chart$x
     i = paste0(which, 'Axis')
     o = list(
-    type = match.arg(type), show = show, position = match.arg(position),
-    name = name, nameLocation = match.arg(nameLocation), nameTextStyle = nameTextStyle,
-    boundaryGap = boundaryGap, min = min, max = max, scale = scale,
-    splitNumber = splitNumber, axisLine = axisLine, axisTick = axisTick,
-    axisLabel = axisLabel, splitLine = splitLine, splitArea = splitArea, data = data
+        type = match.arg(type), show = show, position = match.arg(position),
+        name = name, nameLocation = match.arg(nameLocation), nameTextStyle = nameTextStyle,
+        boundaryGap = boundaryGap, min = min, max = max, scale = scale,
+        splitNumber = splitNumber, axisLine = axisLine, axisTick = axisTick,
+        axisLabel = axisLabel, splitLine = splitLine, splitArea = splitArea, data = data
     )
     if (length(x[[i]])) {
-    # only merge the arguments that are not missing, e.g. eAxis(min = 0) will
-    # only override 'min' but will not override the 'name' attribute
-    a = intersect(names(as.list(match.call()[-1])), names(o))  #;browser()
-    x[[i]] = mergeList(x[[i]], o[a])
+        # only merge the arguments that are not missing, e.g. eAxis(min = 0) will
+        # only override 'min' but will not override the 'name' attribute
+        a = intersect(names(as.list(match.call()[-1])), names(o))  #;browser()
+        x[[i]] = mergeList(x[[i]], o[a])
     } else {
-    x[[i]] = mergeList(x[[i]], o)
+        x[[i]] = mergeList(x[[i]], o)
     }
     chart$x = x
 
-    chart
+    return(chart)
 }
 
 #' @export
@@ -426,6 +426,7 @@ makeToolbox <- function(toolbox=c(TRUE,'cn'), type='auto',
                         show=c('mark', 'dataZoom', 'dataView', 'magicType',
                                'restore', 'saveAsImage'), pos=1, ...){
     # Work function for setToolbox
+
     if (! is.null(show)) show <- tolower(show)
     if (toolbox[1]){
         lstToolbox= list(

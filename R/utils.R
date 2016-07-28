@@ -36,6 +36,12 @@ autoArgLabel = function(arg, auto) {
   auto
 }
 
+#' @export
+#' @S3method + echarts
+"+.echarts" <- function(e1, e2){
+    stopifnot(inherits(e1, 'echarts'))
+    e1 %>% e2
+}
 
 # -------------Lazy functions to judge class-------------------
 isDate <- function(x, format=NULL){

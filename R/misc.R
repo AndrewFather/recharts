@@ -1,4 +1,4 @@
-#' Javascript Operator Assignment
+#' \code{Javascript}-style Operator Assignment
 #'
 #' If you are familiar with \code{Javascript}, you may miss +=, -=, *=, /= very much.
 #' The operator can be \code{+, -, *, /, ^, **, \\, mod, root}.
@@ -24,35 +24,53 @@
 #' a %mod=% 8   # 21 > (21 %% 8) > 5
 #' a %root=% 2  # 5 > (5 ^ (1/2)) > 2.236
 #'
+#' ## object and object
+#' a <- 1:4
+#' b <- 4:1
+#' a %+=% b     # a > c(5,5,5,5)
+#' a %*=% b     # a > c(20, 15, 10, 5)  (c(5,5,5,5) * c(4,3,2,1))
+#'
 #' ## update an object partially
 #' b <- 1:4
-#' b[1] %+=% 1
+#' b[1] %+=% 1     # b > c(2,2,3,4)
+#'
 #' c <- list(list(A=1, B=2:3), list(C=4))
-#' c[[1]]$A %-=% 1
+#' c[[1]]$A %-=% 1 # c[[1]]$A > 0, rest elements are not changed
+#'
+#' 1 %+=% b        # simply print 3 (1 + b[2]), but no variable is changed
+#' 1 %+=% 1        # simply print 2 (1 + b[1]), but no variable is changed
 #' }
 #' @rdname JS.Operator.Assignment
 #'
 `%+=%` <- function(lhs, rhs, envir=parent.frame()){
-    opr <- strsplit(as.character(match.call()), "[%=]")[[1]][2]
+    opr <- gsub("^%(.+)=%$", "\\1", deparse(match.call()[[1]]))
     if (opr %in% c('\\', '%%', '%', 'mod')) opr <- '%%'
+    if (opr %in% c('root')) transformRHS <- "1/" else transformRHS <- ""
     if (opr %in% c('^', '**', 'root')) opr <- '^'
-    if (opr %in% c('root')) rhs <- 1 / rhs
-browser()
-#FIXME: how to extract the object in envir
-    objName <- as.character(substitute(lhs))
-    if (length(objName) > 1) {
-        oName <- objName[2]  # name of the object
-        assign(oName, get(oName, envir), envir=environment())  # object self
-        objPart <- deparse(substitute(lhs))
-    }
 
-    outVal <- eval(parse(text=paste0("`", opr, "`(", lhs, ",", rhs, ")")))
-    eval(parse(text=paste0(objPart, "<-", lhs, " ", opr, " ", rhs)))
+    oLHS <- deparse(substitute(lhs))
+    oRHS <- deparse(substitute(rhs))
 
-    if (lhs == substitute(lhs))  {
-        return(outVal)
+    nameLHS <- strsplit(oLHS,split="[$\\[\\]]", perl=TRUE)[[1]][1]
+    nameRHS <- strsplit(oRHS,split="[$\\[\\]]", perl=TRUE)[[1]][1]
+    fullLHS <- deparse(substitute(lhs))
+    fullRHS <- deparse(substitute(rhs))
+
+    # mirror the object in function envir
+    if (!identical(lhs, substitute(lhs)))
+        assign(nameLHS, get(nameLHS, envir), envir=environment())
+    if (!identical(rhs, substitute(rhs)))
+        assign(nameRHS, get(nameRHS, envir), envir=environment())
+
+    # assign value to the object within function envir
+    if (identical(lhs, substitute(lhs)))  {
+        out <- eval(parse(text=paste0("`", opr, "`(", lhs, ",", transformRHS,
+                                      fullRHS, "[[1]])")))
+        return(out)
     }else{
-        assign(oName, eval(parse(text=oName)), envir=envir)
+        eval(parse(text=paste0(fullLHS, " <- `", opr, "`(", fullLHS, ", ",
+                               transformRHS, fullRHS, ")")))
+        assign(nameLHS, eval(parse(text=nameLHS)), envir=envir)
     }
 }
 
@@ -88,12 +106,87 @@ browser()
 #' @rdname JS.Operator.Assignment
 `%root=%` <- `%+=%`
 
-#' @export
-#' @rdname JS.Operator.Assignment
-`%%=%` <- `%+=%`
+# not useful at all.
+# #' Pipe Binary Operation
+# #'
+# #' \code{\link{\%>\%}} is a great tool to chain a series of operations in a concise format.
+# #' Here provides binary operators combined with pipeline.
+# #' @param lhs Left hand side object
+# #' @param rhs Right hand side object
+# #'
+# #' @return A new object with the value \code{rhs opr rhs}
+# #'
+# #' @export
+# #' @seealso \code{\link{magrittr}}
+# #' @examples
+# #' ## simple object
+# #' a <- 3
+# #' a %>+% 1 %>-% 2 %>*% 3 %>/% 4
+# #'
+# #' ## vector
+# #' a <- 1:4
+# #' a %>+% 1 %>-% 2 %>*% 3 %>/% 4
+# #'
+# #' ## object operates object
+# #' a <- 1:4
+# #' b <- 1:2
+# #' c <- 3:4
+# #' a %>-% b %>+% c %>*% b %>/% c %>^% b %>root% c
+# #'
+# #' @rdname Pipe.Binary.Operators
+#
+# `%>+%` <- function(lhs, rhs){
+#     opr <- deparse(match.call()[[1]])
+#     #browser()
+#     lhs <- deparse(substitute(lhs))
+#     rhs <- deparse(substitute(rhs))
+#     # combine into one string
+#     call <- paste(lhs, opr, rhs)
+#
+#     # match correct operator
+#     call <- gsub("%>\\*\\*%", "%>\\^%", call)
+#     call <- gsub("%>mod%", "%>%%%", call)
+#     call <- gsub("%>root%", "%>\\^1/%", call)
+#
+#     # format call
+#     call <- gsub("%>(\\S+)%\\s+(\\S+)", "%>% `\\1`\\(\\2\\) ", call)
+#     call <- gsub("%>\\^%\\s+(\\S+)", "%>% `\\^`\\(\\2\\)", call)
+#     call <- gsub("%>\\*%\\s+(\\S+)", "%>% `\\*`\\(\\2\\)", call)
+#     call <- gsub("`\\^1/`\\((\\S+)\\)", "`\\^`\\(1/\\1\\)", call) # root x^(1/y)
+#
+#     # evaluate
+#     eval(parse(text=call), envir=parent.frame())
+# }
+#
+# #' @export
+# #' @rdname Pipe.Binary.Operators
+# `%>-%` <- `%>+%`
+#
+# #' @export
+# #' @rdname Pipe.Binary.Operators
+# `%>*%` <- `%>+%`
+#
+# #' @export
+# #' @rdname Pipe.Binary.Operators
+# `%>/%` <- `%>+%`
+#
+# #' @export
+# #' @rdname Pipe.Binary.Operators
+# `%>^%` <- `%>+%`
+#
+# #' @export
+# #' @rdname Pipe.Binary.Operators
+# `%>**%` <- `%>+%`
+#
+# #' @export
+# #' @rdname Pipe.Binary.Operators
+# `%>root%` <- `%>+%`
+#
+# #' @export
+# #' @rdname Pipe.Binary.Operators
+# `%>mod%` <- `%>+%`
 
-
-#-------table format-----------
+###-------table format-----------
 #' Reformat HTML Table
 #'
 #' Convert a data frame to an HTML table object and reformat it.

@@ -40,7 +40,10 @@ autoArgLabel = function(arg, auto) {
 #' @S3method + echarts
 "+.echarts" <- function(e1, e2){
     stopifnot(inherits(e1, 'echarts'))
-    e1 %>% e2
+    browser()
+    e1 <- deparse(substitute(e1))
+    e2 <- deparse(substitute(e2))
+    return(paste(e1,'%>%',e2))
 }
 
 # -------------Lazy functions to judge class-------------------
@@ -62,6 +65,13 @@ isLatin <- function(x){
     if (is.factor(x)) x <- as.character(x)
     return(all(grepl("^[[:alnum:][:space:][:punct:]]+$",x,perl=TRUE)))
 }
+
+ifnull <- function(x, y)  if (is.null(x)) return(y) else return(x)
+ifna <- function(x, y)  if (is.na(x)) return(y) else return(x)
+ifnan <- function(x, y)  if (is.nan(x)) return(y) else return(x)
+ifblank <- function(x, y)  if (length(x) == 0) return(y) else return(x)
+ifzero <- function(x, y)  if (x==0) return(y) else return(x)
+
 
 #--------Other functions for position, color, HTML table conversion------------
 

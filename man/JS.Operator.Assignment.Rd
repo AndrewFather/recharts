@@ -6,12 +6,11 @@
 \alias{\%+=\%}
 \alias{\%-=\%}
 \alias{\%/=\%}
-\alias{\%\%=\%}
 \alias{\%\=\%}
 \alias{\%^=\%}
 \alias{\%mod=\%}
 \alias{\%root=\%}
-\title{Javascript Operator Assignment}
+\title{\code{Javascript}-style Operator Assignment}
 \usage{
 lhs \%+=\% rhs
 
@@ -30,8 +29,6 @@ lhs \%\\=\% rhs
 lhs \%mod=\% rhs
 
 lhs \%root=\% rhs
-
-lhs \%\%=\% rhs
 }
 \arguments{
 \item{lhs}{Left hand side argument.}
@@ -49,6 +46,7 @@ The operator can be \code{+, -, *, /, ^, **, \\, mod, root}.
 }
 \examples{
 \dontrun{
+## update an object entirely
 a <- 3
 a \%+=\% 2     # 3 > (3 + 2) > 5
 a \%-=\% 2     # 5 > (5 - 2) > 3
@@ -60,6 +58,21 @@ a \%\\=\% 30    # 81 > (81 \%\% 30) > 21
 a \%mod=\% 8   # 21 > (21 \%\% 8) > 5
 a \%root=\% 2  # 5 > (5 ^ (1/2)) > 2.236
 
+## object and object
+a <- 1:4
+b <- 4:1
+a \%+=\% b     # a > c(5,5,5,5)
+a \%*=\% b     # a > c(20, 15, 10, 5)  (c(5,5,5,5) * c(4,3,2,1))
+
+## update an object partially
+b <- 1:4
+b[1] \%+=\% 1     # b > c(2,2,3,4)
+
+c <- list(list(A=1, B=2:3), list(C=4))
+c[[1]]$A \%-=\% 1 # c[[1]]$A > 0, rest elements are not changed
+
+1 \%+=\% b        # simply print 3 (1 + b[2]), but no variable is changed
+1 \%+=\% 1        # simply print 2 (1 + b[1]), but no variable is changed
 }
 }
 

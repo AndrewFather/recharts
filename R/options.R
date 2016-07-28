@@ -110,7 +110,7 @@ setGrid <- function(chart, x=80, y=60, x2=80, y2=60, width=NULL, height=NULL,
         if (! missing(borderColor)) if (borderColor != '#ccc')
             lstGrid[['borderColor']] <- borderColor
         if (! missing(backgroundColor)) if (backgroundColor != 'rgba(0,0,0,0)')
-            lstGrid[['backgroundColor']] <- getColors(backgroundColor)
+            lstGrid[['backgroundColor']] <- getColors(backgroundColor)[1]
 
         #-----------tune grid based on widgets-----------------
         ## set base param
@@ -127,9 +127,9 @@ setGrid <- function(chart, x=80, y=60, x2=80, y2=60, width=NULL, height=NULL,
             if (nchar(lst$title$text) > 0) addY <- 25 else addY <- 0
             if (nchar(lst$title$subtext) > 0) addY <- addY + 15
             if (lst$title$y == 'bottom'){
-                lstGrid$y2 <- lstGrid$y2 + addY
+                lstGrid$y2 <- ifnull(lstGrid$y2, 60) + addY
             }else if (lst$title$y == 'top'){
-                lstGrid$y <- lstGrid$y + addY
+                lstGrid$y <- ifnull(lstGrid$y, 60) + addY
             }
         }
         ## legend
@@ -140,16 +140,16 @@ setGrid <- function(chart, x=80, y=60, x2=80, y2=60, width=NULL, height=NULL,
                 addX <- 15
                 if (lst$legend$orient == 'horizontal'){
                     if (lst$legend$y == 'bottom'){
-                        lstGrid$y2 <- lstGrid$y2 + addY
+                        lstGrid$y2 <- ifnull(lstGrid$y2, 60) + addY
                     }else if (lst$legend$y == 'top'){
-                        lstGrid$y <- lstGrid$y + addY
+                        lstGrid$y <- ifnull(lstGrid$y, 60) + addY
                     }
                 }
                 if (lst$legend$orient == 'horizontal'){
                     if (lst$legend$x == 'left'){
-                        lstGrid$x <- lstGrid$x + addX
+                        lstGrid$x <- ifnull(lstGrid$x, 80) + addX
                     }else if (lst$legend$x == 'right'){
-                        lstGrid$x2 <- lstGrid$x2 + addX
+                        lstGrid$x2 <- ifnull(lstGrid$x2, 80) + addX
                     }
                 }
             }
@@ -158,22 +158,20 @@ setGrid <- function(chart, x=80, y=60, x2=80, y2=60, width=NULL, height=NULL,
         if (!is.null(lst$dataZoom)){
             if (!is.null(lst$dataZoom$show)){
                 if (lst$dataZoom$show) {
-                    addY <- ifelse(is.null(lst$dataZoom$height), 20,
-                                   lst$dataZoom$height)
-                    addX <- ifelse(is.null(lst$dataZoom$width), 20,
-                                   lst$dataZoom$width)
-                    if (lst$dataZoom$orient == 'horizontal'){
-                        if (lst$dataZoom$y == 'bottom'){
-                            lstGrid$y2 <- lstGrid$y2 + addY
-                        }else if (lst$dataZoom$y == 'top'){
-                            lstGrid$y <- lstGrid$y + addY
+                    addY <- ifnull(lst$dataZoom$height, 20)
+                    addX <- ifnull(lst$dataZoom$width, 20)
+                    if (ifnull(lst$dataZoom$orient, 'horizontal') == 'horizontal'){
+                        if (ifnull(lst$dataZoom$y, 'bottom') == 'bottom'){
+                            lstGrid$y2 <- ifnull(lstGrid$y2, 60) + addY
+                        }else if (ifnull(lst$dataZoom$y, 'bottom') == 'top'){
+                            lstGrid$y <- ifnull(lstGrid$y, 60) + addY
                         }
                     }
-                    if (lst$dataZoom$orient == 'horizontal'){
-                        if (lst$dataZoom$x == 'left'){
-                            lstGrid$x <- lstGrid$x + addX
-                        }else if (lst$dataZoom$x == 'right'){
-                            lstGrid$x2 <- lstGrid$x2 + addX
+                    if (ifnull(lst$dataZoom$orient, 'horizontal') == 'horizontal'){
+                        if (ifnull(lst$dataZoom$x, 'center') == 'left'){
+                            lstGrid$x <- ifnull(lstGrid$x, 80) + addX
+                        }else if (ifnull(lst$dataZoom$x, 'center') == 'right'){
+                            lstGrid$x2 <- ifnull(lstGrid$x2, 80) + addX
                         }
                     }
                 }
@@ -185,27 +183,31 @@ setGrid <- function(chart, x=80, y=60, x2=80, y2=60, width=NULL, height=NULL,
                 || (!is.null(lst$dataRange$show) && lst$dataRange$show)){
                 addY <- 30
                 addX <- 30
-                if (lst$dataRange$orient == 'horizontal'){
-                    if (lst$dataRange$y == 'bottom'){
-                        lstGrid$y2 <- lstGrid$y2 + addY
-                    }else if (lst$dataRange$y == 'top'){
-                        lstGrid$y <- lstGrid$y + addY
+                if (ifnull(lst$dataRange$orient, 'vertical') == 'horizontal'){
+                    if (ifnull(lst$dataRange$y, 'bottom') == 'bottom'){
+                        lstGrid$y2 <- ifnull(lstGrid$y2, 60) + addY
+                    }else if (isnull(lst$dataRange$y, 'bottom') == 'top'){
+                        lstGrid$y <- ifnull(lstGrid$y, 60) + addY
                     }
                 }
-                if (lst$dataRange$orient == 'horizontal'){
-                    if (lst$dataRange$x == 'left'){
-                        lstGrid$x <- lstGrid$x + addX
-                    }else if (lst$Range$x == 'right'){
-                        lstGrid$x2 <- lstGrid$x2 + addX
+                if (ifnull(lst$dataRange$orient, 'vertical') == 'horizontal'){
+                    if (ifnull(lst$dataRange$x, 'left') == 'left'){
+                        lstGrid$x <- ifnull(lstGrid$x, 80) + addX
+                    }else if (ifnull(lst$Range$x, 'left') == 'right'){
+                        lstGrid$x2 <- ifnull(lstGrid$x2, 80) + addX
                     }
                 }
             }
         }
         ## wrap up
-        if (lstGrid$x - redundX > 80) lstGrid$x <- lstGrid$x - redundX
-        if (lstGrid$x2 - redundX > 80) lstGrid$x2 <- lstGrid$x2 - redundX
-        if (lstGrid$y - redundY > 60) lstGrid$y <- lstGrid$y - redundY
-        if (lstGrid$y2 - redundY > 60) lstGrid$y2 <- lstGrid$y2 - redundY
+        if (ifnull(lstGrid$x, 80) - redundX > 80)
+            lstGrid$x <- ifnull(lstGrid$x, 80) - redundX
+        if (ifnull(lstGrid$x2, 80) - redundX > 80)
+            lstGrid$x2 <- ifnull(lstGrid$x2, 80) - redundX
+        if (ifnull(lstGrid$y, 60) - redundY > 60)
+            lstGrid$y <- ifnull(lstGrid$y, 60) - redundY
+        if (ifnull(lstGrid$y2, 60) - redundY > 60)
+            lstGrid$y2 <- ifnull(lstGrid$y2, 60) - redundY
 
         # collect all grid features
         if (length(lstGrid) > 0){
@@ -222,8 +224,8 @@ makeTitle <- function(title=NULL, subtitle=NULL, link=NULL, sublink=NULL,
                       pos=6, backgroundColor=NULL, borderColor=NULL,
                       borderWidth=NULL, textStyle=NULL, subtextStyle=NULL, ...){
     # Work function for setTitle
-    title <- ifelse(is.null(title), "", title)
-    subtitle <- ifelse(is.null(subtitle), "", subtitle)
+    title <- ifnull(title, "")
+    subtitle <- ifnull(subtitle, "")
     if (grepl("^\\[.+\\]\\(.+\\)$", title)){
         link <- gsub("^\\[(.+)\\]\\((.+)\\)$", "\\2", title)
         title <- gsub("^\\[(.+)\\]\\((.+)\\)$", "\\1", title)
@@ -246,11 +248,11 @@ makeTitle <- function(title=NULL, subtitle=NULL, link=NULL, sublink=NULL,
 
     if (!is.null(backgroundColor)){
         if (backgroundColor != 'rgba(0,0,0,0)')
-            lstTitle[['backgroundColor']] <- getColors(backgroundColor)
+            lstTitle[['backgroundColor']] <- getColors(backgroundColor)[1]
     }
     if (!is.null(borderColor)){
         if (borderColor != '#ccc')
-            lstTitle[['borderColor']] <- borderColor
+            lstTitle[['borderColor']] <- getColors(borderColor)[1]
     }
     if (!is.null(borderWidth)){
         if (borderWidth > 0)
@@ -404,7 +406,7 @@ setTitle <- function(chart, title=NULL, subtitle=NULL, link=NULL, sublink=NULL,
                 chart$x$options[[i]][['title']] <- makeTitle(
                     title=titles[i], subtitle=subtitles[i], link=links[i],
                     sublink=sublinks[i], pos=pos,
-                    backgroundColor=getColors(backgroundColors[i]),
+                    backgroundColor=backgroundColors[i],
                     borderColor=borderColors[i], borderWidth=borderWidths[i],
                     textStyle=textStyles[[i]], subtextStyle=subtextStyles[[i]]
                 )
@@ -415,7 +417,7 @@ setTitle <- function(chart, title=NULL, subtitle=NULL, link=NULL, sublink=NULL,
             chart$x$title <- makeTitle(
                 title=title, subtitle=subtitle, link=link, sublink=sublink,
                 pos=pos, borderColor=borderColor, borderWidth=borderWidth,
-                backgroundColor=getColors(backgroundColor),
+                backgroundColor=backgroundColor,
                 textStyle=textStyle, subtextStyle=subtextStyle
             )
     }
@@ -699,8 +701,7 @@ getColFromPal <- function(palname=NULL, n=6){
                             'solarized_blue', 'solarized_cyan', 'solarized_green')){
                     palname <- unlist(strsplit(palname,"solarized_"))[2]
                     colObj <- try(eval(parse(text=paste0(
-                        "solarized_pal('", ifelse(is.null(palname), 'blue',
-                                                  palname), "')(20)"))), TRUE)
+                        "solarized_pal('", ifnull(palname, 'blue'), "')(20)"))), TRUE)
                 }
             }
         }

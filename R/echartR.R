@@ -143,7 +143,7 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
                   ...){
 
     #--------recognize variable names--------------------------
-    vArgs <- match.arg()
+
     vArgs <- list(x=substitute(x), y=substitute(y), z=substitute(z),
                   x1=substitute(x1), series=substitute(series),
                   weight=substitute(weight), lat=substitute(lat),
@@ -1475,7 +1475,7 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
                 series=lstSeries
             )
 
-            if (!is.null(lstbackgroundColor)) chartobj[['backgroundColor']] <- lstbackgroundColor
+            #if (!is.null(lstbackgroundColor)) chartobj[['backgroundColor']] <- lstbackgroundColor
             #if (!is.null(lstColor)) chartobj[['color']] <- lstColor
             #if (try(exists("lstGrid"),T)) chartobj[['grid']] <- lstGrid
             #if (!is.null(lstSymbol)) chartobj[['symbolList']] <- lstSymbol
@@ -1505,8 +1505,8 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
                     series=lstSeries
                 ))
 
-                if (!is.null(lstbackgroundColor)) chartobj[[t]][['backgroundColor']] <-
-                        lstbackgroundColor
+                #if (!is.null(lstbackgroundColor)) chartobj[[t]][['backgroundColor']] <-
+                #        lstbackgroundColor
                 #if (!is.null(lstColor)) chartobj[[t]][['color']] <- lstColor
                 #if (try(exists("lstGrid"),TRUE)) chartobj[[t]][['grid']] <- lstGrid
                 #if (!is.null(lstSymbol)) chartobj[[t]][['symbolList']] <- lstSymbol
@@ -1542,8 +1542,8 @@ echartR<-function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
         output <- echart(chartobj)
     }
     output <- output %>% setToolbox() %>% setLegend(show=TRUE)
-    if (!is.null(theme$width)) if (is.numeric(theme$width)) output$width <- theme$width
-    if (!is.null(theme$height)) if (is.numeric(theme$height)) output$height <- theme$height
+    #if (!is.null(theme$width)) if (is.numeric(theme$width)) output$width <- theme$width
+    #if (!is.null(theme$height)) if (is.numeric(theme$height)) output$height <- theme$height
     if (all(is.na(Data[,vArgs$y]))) return('') else return(output)
 }
 

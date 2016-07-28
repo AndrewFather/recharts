@@ -163,6 +163,7 @@ A workaround function to generate echart objects.
 }
 \examples{
 \dontrun{
+
 echartR(iris, x=Sepal.Width, y=Petal.Width, series=Species, type='scatter')
 
 echartR(iris, x=~Sepal.Width, y=~Petal.Width, series=~Species)

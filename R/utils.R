@@ -10,6 +10,18 @@ evalFormula = function(x, data) {
   eval(x[[2]], data, environment(x))
 }
 
+evalVarArg <- function(x, data){
+    .evalArg <- function(x, data=data){
+        if (inherits(try(x, TRUE), 'try-error')) x <- deparse(substitute(x))
+        if (! inherits(x, 'formula')) {
+            if (! grepl("^~", x)) x <- as.formula(paste('~', x))
+        }
+    }
+    x <- unlist(sapply(x, .evalArg))
+    #return(evalFormula(x, data))
+    return(as.data.frame(lapply(x, evalFormula, data=data)))
+}
+
 # merge two lists by names, e.g. x = list(a = 1, b = 2), mergeList(x, list(b =
 # 3)) => list(a = 1, b = 3)
 mergeList = function(x, y) {

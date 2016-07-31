@@ -13,10 +13,9 @@ echartR(data, x = NULL, y = x, z = NULL, series = NULL, weight = NULL,
   reverse = FALSE, color = NULL, splitLine = TRUE, banded = FALSE, rotate = 0),
   ylab1 = NULL, yAxis1 = list(lab = ylab1, series = NULL, reverse = FALSE,
   color = NULL, splitLine = TRUE, banded = FALSE, rotate = 0), xyflip = FALSE,
-  AxisAtZero = c(FALSE, TRUE), scale = TRUE, tooltip = TRUE,
-  pos = list(title = 6, legend = 11, toolbox = 1, dataZoom = 6, dataRange = 8,
-  roam = 2), markLine = markLinesmooth, markLinesmooth = NULL,
-  markPoint = NULL, ...)
+  AxisAtZero = c(FALSE, TRUE), scale = TRUE, pos = list(title = 6, legend
+  = 11, toolbox = 1, dataZoom = 6, dataRange = 8, roam = 2),
+  markLine = markLinesmooth, markLinesmooth = NULL, markPoint = NULL, ...)
 }
 \arguments{
 \item{data}{data.frame. No defaults.}
@@ -92,8 +91,6 @@ The data is fliped up when reverse is set TRUE.}
 \item{AxisAtZero}{Axes (and sub axes) cross at zero. Default \code{c(FALSE, TRUE)}.}
 
 \item{scale}{Rescale the axes based on min and max values. Default TRUE.}
-
-\item{tooltip}{Mouse tip effects swtich. Default TRUE.}
 
 \item{pos}{Position of image elements which are integers 1-12.
 Title position default to 6 (o'clock), which means bottom middle.

@@ -57,7 +57,7 @@ echart.data.frame = function(
 
   chart = htmlwidgets::createWidget(
     'echarts', params, width = width, height = height, package = 'recharts',
-    dependencies = getDependency(NULL)
+    dependencies = getDependency(type)
   )
 
   chart %>% eAxis('x', name = xlab) %>% eAxis('y', name = ylab)
@@ -96,7 +96,7 @@ getDependency = function(type) {
   if (is.null(type)) return()
   htmltools::htmlDependency(
     'echarts-module', EChartsVersion,
-    src = system.file('inst/htmlwidgets/lib/echarts', package = 'recharts'),
+    src = system.file('htmlwidgets/lib/echarts', package = 'recharts'),
     script = sprintf('%s.js', type)
   )
 }

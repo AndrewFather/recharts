@@ -158,12 +158,12 @@ checkColorDiff <- function(col1, col2, ...){
 #' @param color A hex or named color, or color in 'rgba(R, G, B, A)' string.
 #' @param mode One or a vector of modes combined. You can only input the first letter.
 #' Default 'bw', which is most useful in textStyles.
-#' \itemize{
-#'  \item \code{bw}: black and white invertion
-#'  \item \code{opposite}: complete invertion to get an opposite color
-#'  \item \code{hue}: only invert hue in terms of \code{\link{hsv}}
-#'  \item \code{saturation}: only invert saturation in terms of \code{\link{hsv}}
-#'  \item \code{lumination} only invert lumination in terms of \code{\link{hsv}}
+#' \describe{
+#'  \item{\code{bw}}{black and white invertion}
+#'  \item{\code{opposite}}{complete invertion to get an opposite color}
+#'  \item{\code{hue}}{only invert hue in terms of \code{\link{hsv}}}
+#'  \item{\code{saturation}}{only invert saturation in terms of \code{\link{hsv}}}
+#'  \item{\code{lumination}}{only invert lumination in terms of \code{\link{hsv}}}
 #' }
 #' @param ... Elipsis
 #'
@@ -172,14 +172,13 @@ checkColorDiff <- function(col1, col2, ...){
 #'
 #' @seealso \code{\link{hsv}}, \code{\link{rgb2hsv}}, \code{\link{rgb}},
 #' @examples
-#' \dontrun{
 #' col <- sapply(list('o', 'h', 'l', 's', 'b', c('h', 'l'), c('h', 's'),
 #'               c('l', 's'), c('h', 's', 'l')), function(mode) {
 #'               return(invertColor('darkred', mode))
 #'         })
 #' library(scales)
 #' show_col(c('darkred', unlist(col)))
-#' }
+#'
 invertColor <- function(color, mode=c('bw', 'opposite', 'hue', 'saturation',
                                       'lumination', ''),
                         ...){
@@ -231,18 +230,19 @@ invertColor <- function(color, mode=c('bw', 'opposite', 'hue', 'saturation',
 #' }
 #'
 vecPos <- function(pos){
-    TblPos=as.data.frame(rbind(c("right","top","horizontal"),
-                               c("right","top","vertical"),
-                               c("right","center","vertical"),
-                               c("right","bottom","vertical"),
-                               c("right","bottom","horizontal"),
-                               c("center","bottom","horizontal"),
-                               c("left","bottom","horizontal"),
-                               c("left","bottom","vertical"),
-                               c("left","center","vertical"),
-                               c("left","top","vertical"),
-                               c("left","top","horizontal"),
-                               c("center","top","horizontal")),
+    TblPos=as.data.frame(rbind(c("right",  "top",    "horizontal"),
+                               c("right",  "top",    "vertical"),
+                               c("right",  "center", "vertical"),
+                               c("right",  "bottom", "vertical"),
+                               c("right",  "bottom", "horizontal"),
+                               c("center", "bottom", "horizontal"),
+                               c("left",   "bottom", "horizontal"),
+                               c("left",   "bottom", "vertical"),
+                               c("left",   "center", "vertical"),
+                               c("left",   "top",    "vertical"),
+                               c("left",   "top",    "horizontal"),
+                               c("center", "top",    "horizontal")
+                               ),
                          stringsAsFactors=FALSE)
     names(TblPos) <- c("x","y","z")
     return(as.vector(unlist(TblPos[pos,])))

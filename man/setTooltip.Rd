@@ -45,9 +45,11 @@ string (default \code{'{a} < br/>{b} : {c}'}) or JS function.}
 \item{enterable}{If users can click into the tooltip for interacions. Default FALSE.}
 
 \item{axisPointer}{The pointer formatter of axis. Default is a list \code{
-list(type = "line", lineStyle = list(color = "#48b", width = 2, type = "solid"),
-crossStyle = list(color = "#1e90ff", width = 1, type = "dashed"),
-shadowStyle = list(color = "rgba(150,150,150,0.3)", width = "auto", type = "default"))}.}
+list(type = "line", \cr
+     lineStyle = list(color = "#48b", width = 2, type = "solid"), \cr
+     crossStyle = list(color = "#1e90ff", width = 1, type = "dashed"), \cr
+     shadowStyle = list(color = "rgba(150,150,150,0.3)", width = "auto", type = "default") \cr
+)}.}
 
 \item{textStyle}{text style of the tooltip. In a list form. Default \code{list(color
 ="#fff")}. The list coud contain elements of \code{color, decoration, fontSize,
@@ -78,14 +80,15 @@ A modified echarts object
 }
 \description{
 Set tooltip of Echarts, at various levels (entire chart, specific series) with
-various formats.
+various formats. \cr
 When an echart object is generated, you can modify it by setting tooltip using
 \code{\link{\%>\%}}.
 }
 \note{
-The \code{tooltip} feature is inheritable in terms of timeliine. So, if you
-set a timeslot-specific (z-specific) tooltip to an echarts object, you have to
-reset the tooltip format for the following timeslot to stop the inheritability.
+Note that the \code{tooltip} feature is inheritable in terms of timeline.
+\code{setTooltip} automatically breaks the inheritability by resetting tooltip
+formats in the timeslots following the timeslots whose tooltip format are changed.
+.
 }
 \examples{
 \dontrun{
@@ -116,10 +119,9 @@ g1 \%>\% setTooltip(series='setosa', bgColor=bgCol[1]) \%>\%
        setTooltip(z=2, borderColor='gold', borderWidth=3) \%>\%
        setTooltip(z=3, borderColor='green', borderWidth=3)
 
-g1 \%>\% setTooltip(series=2, z=2, bgColor='blue') \%>\%
-       setTooltip(series=2, timeslots=3, bgColor='rgba(0,0,0,0.7)')
-       # reset the following timeslot's tooltip, otherwise the series after
-       # the 2nd one will inherit the tooltip format of the 2nd series
+g1 \%>\% setTooltip(series=2, z=2, bgColor='blue')
+       # tooltip format of series 2 in the 2nd timeslot is changed to bg blue,
+       # while it in the 3rd timeslot is reset to default
 }
 }
 \references{

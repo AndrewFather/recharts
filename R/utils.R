@@ -18,9 +18,11 @@ evalVarArg <- function(x, data){
         }
     }
     x <- unlist(sapply(x, .evalArg))
-    #return(evalFormula(x, data))
-    return(as.data.frame(lapply(x, evalFormula, data=data)))
+    if (!is.null(x))
+        return(as.data.frame(lapply(x, evalFormula, data=data)))
 }
+
+
 
 # merge two lists by names, e.g. x = list(a = 1, b = 2), mergeList(x, list(b =
 # 3)) => list(a = 1, b = 3)
@@ -43,9 +45,13 @@ mergeList = function(x, y) {
 
 # automatic labels from function arguments
 autoArgLabel = function(arg, auto) {
-  if (is.null(arg)) return('')
-  if (inherits(arg, 'formula')) return(deparse(arg[[2]]))
-  auto
+    if (inherits(try(arg, TRUE), 'try-error')) arg <- deparse(substitute(arg))
+    if (! inherits(arg, 'formula')) {
+        if (! grepl("^~", arg)) arg <- as.formula(paste('~', arg))
+    }
+    if (is.null(arg)) return('')
+    if (inherits(arg, 'formula')) return(deparse(arg[[2]]))
+    auto
 }
 
 #' @export

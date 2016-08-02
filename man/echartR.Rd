@@ -14,8 +14,7 @@ echartR(data, x = NULL, y = x, z = NULL, series = NULL, weight = NULL,
   ylab1 = NULL, yAxis1 = list(lab = ylab1, series = NULL, reverse = FALSE,
   color = NULL, splitLine = TRUE, banded = FALSE, rotate = 0), xyflip = FALSE,
   AxisAtZero = c(FALSE, TRUE), scale = TRUE, pos = list(title = 6, legend
-  = 11, toolbox = 1, dataZoom = 6, dataRange = 8, roam = 2),
-  markLine = markLinesmooth, markLinesmooth = NULL, markPoint = NULL, ...)
+  = 11, toolbox = 1, dataZoom = 6, dataRange = 8, roam = 2), ...)
 }
 \arguments{
 \item{data}{data.frame. No defaults.}
@@ -97,58 +96,6 @@ Title position default to 6 (o'clock), which means bottom middle.
 Defaults to legend, toolbox, dataRange, dataZoom, roamController are
 11, 1, 6, 8, 2, respectively. Default pos=list(title=6, legend=11, toolbox=1,
 dataZoom=6, dataRange=8, roam=2)}
-
-\item{markLine}{Short form: \cr
-\tabular{llll}{
- [col 1] series name|index \tab [col 2] line name \tab [col 3] Line type
- \tab [col 4] Light effect \cr
- String or number \tab String|NA \tab min|max|average|lm \tab TRUE|FALSE
-}
-Full form: \cr
-\tabular{llllllll}{
- [col 1] series name|index \tab [col 2] line name \tab [col 3] Value
- \tab [col 4] P0 x \tab [col 5] P0 y \tab [col 6] P1 x \tab [col 7] P1 y
- \tab [col 8] Light effect \cr
- String|number \tab String|NA \tab num \tab x val \tab y val \tab x val
- \tab y val \tab TRUE|FALSE
-}
-Examples:
-\itemize{
- \item E.g., both \code{t(c('male', NA, 'average', FALSE))} and \code{t(c(1, NA, 'average', FALSE))}
- refer to an average markline of the series 'male', only available for line,
- linesmooth, bar, scatter, bubble charts. 'lm' refers to linear regresson
- markline which is only available for scatters and bubbles.
- \code{t(c(1, NA, 'average', TRUE))} opens light effects of series 'male'. \cr
- \item In line, bar, k and scatter charts, 'P0 x','P0 y','P1 x','P1 y' are
- comprehended as coordinates. In map charts, these coordinates should be lattitudes
- and longitudes. \code{t(c('male', NA, 100, 0, 5, 100, 5, TRUE))} opens light effects of series 'male'.
-}}
-
-\item{markLinesmooth}{Used this instead of markLine for smooth marklines with
-totally identical grammar.}
-
-\item{markPoint}{Show markpoints, default to NULL.
-The grammar is a data.frame or matrix with 4 or 6 columns:
-Short form: \cr
-\tabular{llll}{
- <col 1> series name|index \tab <col 2> Point name \tab <col 3> Point type \tab <col 4> Light effect \cr
- String or number \tab String|NA \tab min|max \tab TRUE|FALSE
- }
-Full form: \cr
-\tabular{llllll}{
- [col 1] series name|index \tab [col 2] Point name \tab [col 3] Value \tab [col 4] P x
- \tab [col 5] P y \tab [col 6] Light effect \cr
- String or number \tab String|NA \tab num \tab x val \tab y val \tab TRUE|FALSE
-}
-Examples: \cr
-\itemize{
- \item E.g., both \code{t(c('male',NA,'min',FALSE))} and \code{t(c(1,NA,'min',FALSE))} refer
- to a min markpoint of the series 'male', only available for line, linesmooth, bar,
- scatter, bubble charts. \code{t(c('male',NA,'min',TRUE))} opens light effects of series 'male'.
- \item In line, bar, k and scatter charts, 'P x','P y',... are comprehended
- as coordinates. In map charts, these coordinates should be lattitudes and longitudes.
- \code{t(c('male',NA,100,0,5,TRUE))} opens light effects of series 'male'.
-}}
 
 \item{...}{elipsis}
 }

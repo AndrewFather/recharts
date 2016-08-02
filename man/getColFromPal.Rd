@@ -9,12 +9,12 @@ getColFromPal(palname = NULL, n = 6)
 \arguments{
 \item{palname}{name of the palette. Default NULL to get echarts default. Could be:
 \itemize{
- \item \link{RColorBrewer} palettes: Including 'BrBG', 'PiYG', 'PRGn', 'PuOr', 'RdBu',
+ \item \link{RColorBrewer} palettes: Including \code{'BrBG', 'PiYG', 'PRGn', 'PuOr', 'RdBu',
  'RdGy', 'RdYlBu', 'RdYlGn', 'Spectral', 'Accent', 'Dark2', 'Paired', 'Pastel1',
  'Pastel2', 'Set1', 'Set2', 'Set3', 'Blues', 'BuGn', 'BuPu', 'GnBu', 'Greens',
  'Greys', 'Oranges', 'OrRd', 'PuBu', 'PuBuGn', 'PuRd', 'Purples', 'RdPu', 'Reds',
- 'YlGn', 'YlGnBu', 'YlOrBr', 'YlOrRd' \cr
- \item \link{ggthemes} palettes: 'calc', 'economist', 'economist_white', 'economist_stata',
+ 'YlGn', 'YlGnBu', 'YlOrBr', 'YlOrRd'} \cr
+ \item \link{ggthemes} palettes: \code{'calc', 'economist', 'economist_white', 'economist_stata',
  'excel', 'exel_fill', 'excel_line', 'excel_new', 'few', 'fivethirtyeight', '538', 'manyeyes',
  'gdocs', 'pander', 'tableau', 'stata', 'stata1','stata1r','statamono', 'ptol',
  'tableau20', 'tableau10medium', 'tableaugray', 'tableauprgy', 'tableaublrd',
@@ -22,14 +22,14 @@ getColFromPal(palname = NULL, n = 6)
  'tableaugnor12', 'hc', 'darkunica', 'solarized', 'solarized_red', 'solarized_yellow',
  'solarized_orange', 'solarized_magenta', 'solarized_violet', 'solarized_blue',
  'solarized_cyan', 'solarized_green', 'wsj', 'wsj_rgby', 'wsj_red_green',
- 'wsj_black_green', 'wsj_dem_rep', 'colorblind', 'trafficlight' \cr
- \item Aetna official palettes: Including 'aetnagreen', 'aetnablue', 'aetnaviolet',
- 'aetnaorange', 'aetnateal', 'aetnacranberry' \cr
- \item Other palettes: 'rainbow', 'terrain', 'topo', 'heat', 'cm'
+ 'wsj_black_green', 'wsj_dem_rep', 'colorblind', 'trafficlight'} \cr
+ \item Aetna official palettes: Including \code{'aetnagreen', 'aetnablue', 'aetnaviolet',
+ 'aetnaorange', 'aetnateal', 'aetnacranberry'} \cr
+ \item Other palettes: \code{'rainbow', 'terrain', 'topo', 'heat', 'cm'}
 }}
 
-\item{n}{length of the color vector when the palette is continuous (rain, cm,
-terrain, topo, heat, ...). Default 6.}
+\item{n}{length of the color vector when the palette is continuous (\code{rain, cm,
+terrain, topo, heat, ...}). Default 6.}
 }
 \value{
 color vectors

@@ -90,8 +90,8 @@ mergeList = function(x, y) {
 # automatic labels from function arguments
 autoArgLabel = function(arg, auto) {
     if (inherits(try(arg, TRUE), 'try-error')) arg <- deparse(substitute(arg))
-    if (! inherits(arg, 'formula')) {
-        if (! grepl("^~", arg)) arg <- as.formula(paste('~', arg))
+    if (! inherits(arg, 'formula') && ! is.null(arg)) {
+        if (! grepl("^~", arg, ''))  arg <- as.formula(paste('~', arg))
     }
     if (is.null(arg)) return('')
     if (inherits(arg, 'formula')) return(deparse(arg[[2]]))

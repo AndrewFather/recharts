@@ -83,7 +83,7 @@ echartr = function(
     # get all arguments as a list
     vArgs <- as.list(match.call(expand.dots=TRUE))
     vArgs <- vArgs[3:length(vArgs)]  # exclude `fun` and `data`
-    browser()
+
     # extract var names and values
     eval(parse(text=paste0(names(vArgs), "var <- evalVarArg(",
                            sapply(vArgs, deparse), ", data, eval=FALSE)")))
@@ -105,12 +105,25 @@ echartr = function(
     data_fun = getFromNamespace(paste0('data_', type), 'recharts')
 
     # params list
-    params = structure(list(
-        series = data_fun(x, y, series),
-        xAxis = list(), yAxis = list()
-    ), meta = list(
-        x = x, y = y
-    ))
+    ## FIXME:structure correct?
+    if (!is.null(z)){  ## timeline
+        params = structure(list(
+            timeline=list(),
+            options=list(list(
+            series = data_fun(x, y, series),
+            xAxis = list(), yAxis = list()
+        ))), meta = list(
+            x = x, y = y, series = series
+        ))
+    }else{
+        params = structure(list(
+            series = data_fun(x, y, series),
+            xAxis = list(), yAxis = list()
+        ), meta = list(
+            x = x, y = y, series = series
+        ))
+    }
+
 
     if (!is.null(series)) {
         params$legend = list(data = levels(as.factor(series)))

@@ -9,7 +9,7 @@
 #' @rdname axis
 eAxis = function(
     chart, which = c('x', 'y'),
-    type = c('value', 'category', 'time'), show = TRUE,
+    type = c('value', 'category', 'time', 'log'), show = TRUE,
     position = c('bottom', 'top', 'left', 'right'),
     name = '', nameLocation = c('end', 'start'), nameTextStyle = emptyList(),
     boundaryGap = c(0, 0), min = NULL, max = NULL, scale = TRUE, splitNumber = NULL,

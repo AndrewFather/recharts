@@ -73,6 +73,58 @@ eChart = echart
 # from the planet of "Duo1 Qiao1 Yi1 Ge4 Jian4 Hui4 Si3" (will die if having to
 # press one more key, i.e. Shift in this case)
 
+
+#' @export
+echartr = function(
+    data, x = NULL, y = x, z = NULL, series = NULL, weight = NULL,
+    lat = NULL, lng = NULL, type = 'auto', ...
+) {
+# experimental function
+    # get all arguments as a list
+    vArgs <- as.list(match.call(expand.dots=TRUE))
+    vArgs <- vArgs[3:length(vArgs)]  # exclude `fun` and `data`
+    browser()
+    # extract var names and values
+    eval(parse(text=paste0(names(vArgs), "var <- evalVarArg(",
+                           sapply(vArgs, deparse), ", data, eval=FALSE)")))
+    eval(parse(text=paste0(names(vArgs), " <- evalVarArg(",
+                           sapply(vArgs, deparse), ", data)")))
+
+    # x, y lab
+    xlab = sapply(xvar, autoArgLabel, auto=deparse(substitute(xvar)))
+    ylab = sapply(yvar, autoArgLabel, auto=deparse(substitute(yvar)))
+
+    # determine types
+    if (type == 'auto') type = determineType(x, y)
+    if (type == 'bar') {
+        x = as.factor(x)
+        if (is.null(y)) ylab = 'Frequency'
+    }
+
+    # data series
+    data_fun = getFromNamespace(paste0('data_', type), 'recharts')
+
+    # params list
+    params = structure(list(
+        series = data_fun(x, y, series),
+        xAxis = list(), yAxis = list()
+    ), meta = list(
+        x = x, y = y
+    ))
+
+    if (!is.null(series)) {
+        params$legend = list(data = levels(as.factor(series)))
+    }
+
+    chart = htmlwidgets::createWidget(
+        'echarts', params, width = NULL, height = NULL, package = 'recharts',
+        dependencies = getDependency(type)
+    )
+
+    chart %>% eAxis('x', name = xlab) %>% eAxis('y', name = ylab)
+}
+
+
 determineType = function(x, y) {
   if (is.numeric(x) && is.numeric(y)) return('scatter')
   # when y is numeric, plot y against x; when y is NULL, treat x as a

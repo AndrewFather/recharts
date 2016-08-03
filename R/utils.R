@@ -10,19 +10,63 @@ evalFormula = function(x, data) {
   eval(x[[2]], data, environment(x))
 }
 
-evalVarArg <- function(x, data){
-    .evalArg <- function(x, data=data){
-        if (inherits(try(x, TRUE), 'try-error')) x <- deparse(substitute(x))
-        if (! inherits(x, 'formula')) {
-            if (! grepl("^~", x)) x <- as.formula(paste('~', x))
-        }
+evalVar <- function(var, data){
+    stopifnot(inherits(var, 'formula'))
+    if (var != ~NULL){
+        evalFormula(var, data=data)
     }
-    x <- unlist(sapply(x, .evalArg))
-    if (!is.null(x))
-        return(as.data.frame(lapply(x, evalFormula, data=data)))
 }
 
+evalVarArg <- function(x, data, simplify=FALSE, eval=TRUE){
+    # eval var list to a data.frame
+    # E.g.
+    ## evalVarArg(Species, iris)
+    ## evalVarArg(~Species, iris)
+    ## evalVarArg("Species", iris)
+    ## evalVarArg(as.numeric(Species), iris)
+    ## evalVarArg(~as.numeric(Species), iris)
+    ## evalVarArg("as.numeric(Species)", iris)
+    ## evalVarArg(c(Species, Sepal.Width), iris)
+    ## evalVarArg(c(as.numeric(Species), Sepal.Width), iris)
+    ## evalVarArg(c(as.numeric(Species)+1, Sepal.Width), iris)
 
+    # coerce x to formula
+    x <- arg1 <- deparse(substitute(x))
+    x <- gsub('^\\"(.*)\\"$' , '\\1', x)
+    x <- as.formula(ifelse(grepl("^~", x), x, paste('~', x)))
+
+    # split x if it is packed in a list/ vector
+    if (! grepl('^(c|list|data\\.frame)\\(', deparse(substitute(x)[[2]])))
+        x <- deparse(substitute(x)[[2]])  # a string
+    else
+        x <- as.character(parse(text=x[[2]]))  # a vector
+      ## each element in x --> formula
+    #browser()
+    x[! grepl("^~", x)] <- paste('~', x[! grepl("^~", x)])
+    x <- as.vector(sapply(x, as.formula))
+
+    # loop evalVar() and filter valid data.frame
+    out <- sapply(x, evalVar, data=data, simplify=FALSE)
+    nrows <- sapply(out, length)
+    out <- out[names(nrows)[nrows==nrow(data)]]
+    names <- names(x)
+    names <- names[nrows==nrow(data)]
+    names <- gsub("^ *~ *(.*)$|^c\\((.*)\\)$", "\\1", names)
+    out <- as.data.frame(out)
+    names(out) <- names
+    if (length(out) == 0){
+        warning(paste("You yielded nothing by requiring", deparse(substitute(arg1)),
+                      "out of", deparse(substitute(data))))
+        return(NULL)
+    }else{
+        if (eval){
+            if (simplify) if (ncol(out) == 1) return(out[,1])
+            return(out)
+        }else{
+            return(names)
+        }
+    }
+}
 
 # merge two lists by names, e.g. x = list(a = 1, b = 2), mergeList(x, list(b =
 # 3)) => list(a = 1, b = 3)
@@ -55,7 +99,7 @@ autoArgLabel = function(arg, auto) {
 }
 
 #' @export
-#' @S3method + echarts
+#' @exportMethod + echarts
 "+.echarts" <- function(e1, e2){
     stopifnot(inherits(e1, 'echarts'))
     browser()
@@ -72,16 +116,19 @@ isDate <- function(x, format=NULL){
         if (!is(try(as.Date(x,format=format),TRUE),"try-error")) TRUE else FALSE
     }
 }
-isTime <- function(x,origin=NULL,tz='CST'){
+isTime <- function(x, origin=NULL, tz='CST'){
     if (is.null(origin)){
         return(FALSE)
     }else{
-        if (!is(try(as.POSIXct,T),"try-error")) T else F
+        if (!is(try(as.POSIXct,T),"try-error")) TRUE else FALSE
     }
 }
 isLatin <- function(x){
     if (is.factor(x)) x <- as.character(x)
-    return(all(grepl("^[[:alnum:][:space:][:punct:]]+$",x,perl=TRUE)))
+    return(all(grepl("^[[:alnum:][:space:][:punct:]]+$", x, perl=TRUE)))
+}
+isFormula <- function(x){
+    return(inherits(x, 'formula'))
 }
 
 ifnull <- function(x, y)  if (is.null(x)) return(y) else return(x)
@@ -90,7 +137,13 @@ ifnan <- function(x, y)  if (is.nan(x)) return(y) else return(x)
 ifblank <- function(x, y)  if (length(x) == 0) return(y) else return(x)
 ifzero <- function(x, y)  if (x==0) return(y) else return(x)
 
-
+convTimestamp <- function(time, from='R', to='JS'){
+    stopifnot(inherits(time, c("numeric", "Date", "POSIXct", "POSIXlt")))
+    if (from=='R' && to=='JS')
+        return(as.numeric(as.POSIXct(time, orig="1970-01-01")) * 1000)
+    if (from=='JS' && to=='R')
+        return(as.POSIXct(time/1000, orig="1970-01-01"))
+}
 #--------Other functions for position, color, HTML table conversion------------
 
 #' Get A String Containing 'rgba' Function

@@ -1116,41 +1116,4 @@ echartR <- function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
     if (all(is.na(Data[,vArgs$y]))) return('') else return(output)
 }
 
-#' @export
-echartr = function(
-    x = NULL, y = x, z = NULL, series = NULL, weight = NULL,
-    lat = NULL, lng = NULL, type = 'auto', ...
-) {
 
-    xlab = autoArgLabel(x, deparse(substitute(x)))
-    ylab = autoArgLabel(y, deparse(substitute(y)))
-
-    x = evalFormula(x, data)
-    y = evalFormula(y, data)
-    if (type == 'auto') type = determineType(x, y)
-    if (type == 'bar') {
-        x = as.factor(x)
-        if (is.null(y)) ylab = 'Frequency'
-    }
-
-    series = evalFormula(series, data)
-    data_fun = getFromNamespace(paste0('data_', type), 'recharts')
-
-    params = structure(list(
-        series = data_fun(x, y, series),
-        xAxis = list(), yAxis = list()
-    ), meta = list(
-        x = x, y = y
-    ))
-
-    if (!is.null(series)) {
-        params$legend = list(data = levels(as.factor(series)))
-    }
-
-    chart = htmlwidgets::createWidget(
-        'echarts', params, width = width, height = height, package = 'recharts',
-        dependencies = getDependency(type)
-    )
-
-    chart %>% eAxis('x', name = xlab) %>% eAxis('y', name = ylab)
-}

@@ -1271,9 +1271,9 @@ setPolar <- function(chart, center=c('50%', '50%'), radius='75%', startAngle=90,
 }
 
 
-#' Set Theme (color, background, animation, border effects) of Echarts
+#' Set Aesthetics (color, background, animation, border effects) of Echarts
 #'
-#' Set theme of Echarts, including \code{color, bgColor, animation, calculable,
+#' Set aesthetics of Echarts, including \code{color, bgColor, animation, calculable,
 #' borderColor, borderWidth}.
 #' When an echart object is generated, you can modify it by setting toolbox using
 #' \code{\link{\%>\%}}.
@@ -1313,7 +1313,7 @@ setPolar <- function(chart, center=c('50%', '50%'), radius='75%', startAngle=90,
 #'  available color names and check the effects using \code{demo(colors)}.
 #' }
 #' @param bgColor Color name/value of the background. Default is transparent
-#' ('rgba(0,0,0,0)')
+#' (\code{'rgba(0,0,0,0)'})
 #' @param renderAsImage Logical. If FALSE, the interactive effects are disabled. Default TRUE.
 #' @param calculable Logical. If TRUE, the chart is re-calculated after drag. Default TRUE.
 #' @param calculableColor The border color of the tooltip during \code{calculable} effect.
@@ -1338,9 +1338,12 @@ setPolar <- function(chart, center=c('50%', '50%'), radius='75%', startAngle=90,
 #'
 #' @seealso \code{\link{brewer.pal}}, \code{\link{colors}}
 #' @references
+#' \code{backgroundColor}
 #' \url{http://echarts.baidu.com/echarts2/doc/option.html#title~backgroundColor}
+#' \code{colors}
 #' \url{http://echarts.baidu.com/echarts2/doc/option.html#title~color}
 #' \url{http://colorbrewer2.org}
+#' \code{other features}
 #' \url{http://echarts.baidu.com/echarts2/doc/option.html#title~renderAsImage}
 #' \url{http://echarts.baidu.com/echarts2/doc/option.html#title~calculable}
 #' \url{http://echarts.baidu.com/echarts2/doc/option.html#title~animation}
@@ -1349,15 +1352,16 @@ setPolar <- function(chart, center=c('50%', '50%'), radius='75%', startAngle=90,
 #' @examples
 #' \dontrun{
 #' g <- echartR(iris, x=Sepal.Width, y=Petal.Width, series=Species, type='scatter')
-#' g %>% setTheme('hc')
-#' g %>% setTheme(c('red', 'gold', 'deepskyblue'), 'gray95',
+#' g %>% setAes('hc')
+#' g %>% setAes(c('red', 'gold', 'deepskyblue'), 'gray95',
 #'         animationHoldColor='red', animationEasing='CircularOut',
 #'         animationDuration=10000)
 #' }
-setTheme <- function(
+setAes <- function(
     chart, palette='asis', bgColor=NULL, renderAsImage=FALSE, calculable=TRUE,
     calculableColor=NULL, calculableHolderColor=NULL, animation=TRUE,
-    animationEasing=NULL, animationDuration=NULL, width=NULL, height=NULL, ...){
+    animationEasing=NULL, animationDuration=NULL, width=NULL, height=NULL,
+    ...){
     stopifnot(inherits(chart, 'echarts'))
     hasZ <- 'timeline' %in% names(chart$x)
     ## set colors

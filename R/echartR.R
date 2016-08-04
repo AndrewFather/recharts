@@ -1115,5 +1115,3 @@ echartR <- function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
     #if (!is.null(theme$height)) if (is.numeric(theme$height)) output$height <- theme$height
     if (all(is.na(Data[,vArgs$y]))) return('') else return(output)
 }
-
-

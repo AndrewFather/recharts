@@ -18,6 +18,7 @@ Imports:
     htmlwidgets (>= 0.4),
     magrittr
 Suggests:
+    data.table,
     dplyr,
     ggthemes,
     Hmisc,

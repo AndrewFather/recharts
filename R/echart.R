@@ -80,31 +80,49 @@ echartr = function(
     lat = NULL, lng = NULL, type = 'auto', xyflip = FALSE, ...
 ) {
     # experimental function
-    # get all arguments as a list
+    #------------- get all arguments as a list-----------------
     vArgs <- as.list(match.call(expand.dots=TRUE))
     vArgs <- vArgs[3:length(vArgs)]  # exclude `fun` and `data`
 
-    # extract var names and values
+    # ------------extract var names and values-----------------
     eval(parse(text=paste0(names(vArgs), "var <- evalVarArg(",
                            sapply(vArgs, deparse), ", data, eval=FALSE)")))
     eval(parse(text=paste0(names(vArgs), " <- evalVarArg(",
                            sapply(vArgs, deparse), ", data)")))
     hasZ <- ! is.null(z)
-browser()
-    # x, y lab(s)
+    if (hasZ) if (! (is.numeric(z[,1]) ||
+                            inherits(z[,1], c("Date", "POSIXct", "POSIXlt"))))
+        stop("z (timeline) must be numeric or data/time!")
+
+    # ------------------x, y lab(s)----------------------------
     xlab = sapply(xvar, autoArgLabel, auto=deparse(substitute(xvar)))
     ylab = sapply(yvar, autoArgLabel, auto=deparse(substitute(yvar)))
 
-    # split multi-vector args to vectors
+    # -------------split multi-timeline df to lists-----------
+    dataVars <- intersect(names(vArgs),
+                          c('x', 'y', 'z', 'series', 'weight', 'lat', 'lng', 'type'))
+    .makeMetaDataList <- function(df) {
+        assignment <- paste0(dataVars, " = ", substitute(df, parent.frame()),
+                             "[ ,", paste0(dataVars, "var"), ", drop=FALSE]")
+        eval(parse(text=paste0("list(", paste(assignment, collapse=", "), ")")))
+    }
+    if (hasZ){
+        uniZ <- unique(z[,1])
+        dataByZ <- split(data, as.factor(z[,1]))
+        metaData <- lapply(dataByZ, .makeMetaDataList)
+        names(metaData) <- uniZ
+    }else{
+        metaData <- .makeMetaDataList(data)
+    }
 
-
-    # determine types
+    # -----------------determine types---------------------------
+    type <- tolower(type)
     stopifnot(all(type %in% c('auto', validChartTypes$name)))
     if (!is.null(series)) lvlSeries <- levels(as.factor(series[,1]))
     if (!is.null(series)) nSeries <- length(lvlSeries) else nSeries <- 1
     if (type == 'auto')  type = determineType(x[,1], y[,1])
 
-    ## one series, one type
+    ## type vector: one series, one type
     if (length(type) >= nSeries){
         type <- type[1:nSeries]
     }else{
@@ -122,49 +140,51 @@ browser()
             stop(paste("Only Cartesion Coordinates charts (scatter/point/bubble,",
                        "line, area, bar) support mixed types"))
     }
-    if (nlevels(as.factor(dfType$xyflip)))
+    if (nlevels(as.factor(dfType$xyflip)) > 1)
         warning(paste("xyflip is not consistent across the types given.\n",
                       dfType[,c("name", "type", "xyflip")]))
 
+    # ---------------------------params list----------------------
+    .makeSeriesList <- function(z){  # each timeline create a options list
+        data_fun = getFromNamespace(paste0('series_', dfType$type[1]),
+                                    'recharts')
+        out <- structure(list(
+            series <- data_fun(metaData[[z]], type=dfType$type)
+        ), meta = metaData[[z]])
+        return(out)
+    }
 
-    # data series
-    data_fun = getFromNamespace(paste0('data_', dfType$type), 'recharts')
+    if (hasZ){  ## has timeline
 
-    # params list
-    ## FIXME:structure correct?
-    if (hasZ){  ## timeline
+        params = list(
+            timeline=list(show=TRUE, y2=50),
+            options=lapply(1:length(uniZ), .makeSeriesList)
+        )
+        if (!is.null(series))
+            params$options[[1]]$legend <- list(
+                data = as.list(levels(as.factor(series[,1])))
+            )
 
-        params = structure(list(
-            timeline=list(),
-            options=list(list(
-                series = data_fun(x, y, series),
-                xAxis = list(), yAxis = list()
-            ))
-            ),
-            meta = list(
-                x = x, y = y, series = series
-            ))
     }else{
-        params = structure(list(
-            series = data_fun(x, y, series),
-            xAxis = list(), yAxis = list()
-            ),
-            meta = list(
-                x = x, y = y, series = series
-        ))
+        params = .makeSeriesList(1)
+        if (!is.null(series))
+            params$legend <- list(
+                data = as.list(levels(as.factor(series[,1])))
+            )
     }
 
 
-    if (!is.null(series)) {
-        params$legend = list(data = levels(as.factor(series)))
-    }
-
+    # -------------------output-------------------------------
     chart = htmlwidgets::createWidget(
         'echarts', params, width = NULL, height = NULL, package = 'recharts',
         dependencies = getDependency(type)
     )
 
-    chart %>% eAxis('x', name = xlab) %>% eAxis('y', name = ylab)
+    if (any(type %in% c('line', 'bar', 'scatter'))){
+        chart %>% eAxis('x', name = xlab) %>% eAxis('y', name = ylab)
+    }else{
+        chart
+    }
 }
 
 

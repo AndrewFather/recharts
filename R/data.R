@@ -1,3 +1,48 @@
+#' @importFrom data.table melt
+series_scatter <- function(lst, type, return=NULL, ...){
+    lst <- mergeList(list(weight=NULL, series=NULL), lst)
+    data <- cbind(lst$y[,1], lst$x[,1])
+
+    if (!is.null(lst$weight)){  # weight as symbolSize
+        minWeight <- min(lst$weight[,1], na.rm=TRUE)
+        range <- max(lst$weight[,1], na.rm=TRUE) - minWeight
+        symbolSizeJS <- paste('function (value){
+                return Math.round(1+9*(value[2]-', minWeight,')/', range, ');
+                }')
+    }
+    obj <- list()
+    if (is.null(lst$series)) {
+        if (is.null(lst$weight))
+            obj <- list(list(type=type[1], data=data))
+        else
+            obj <- list(list(type=type[1], data=data, symbolSize=JS(symbolSizeJS)))
+    }else{
+        data <- cbind(data, lst$series[,1])
+        data = split(as.data.frame(data), lst$series[,1])
+        if (is.null(lst$weight)){
+            for (i in seq_along(data)) {
+                obj[[i]] = list(name = names(data)[i], type = type[i],
+                                data = unname(as.matrix(data[[i]])))
+            }
+        }else{
+            for (i in seq_along(data)) {
+                obj[[i]] = list(name = names(data)[i], type = type[i],
+                                data = unname(as.matrix(data[[i]])),
+                                symbolSize=JS(symbolSizeJS))
+            }
+        }
+    }
+
+    if (is.null(return)){
+        return(obj)
+    }else{
+        return(obj[intersect(names(obj), return)])
+    }
+}
+
+
+
+
 # split the data matrix for a scatterplot by series
 data_scatter = function(x, y, series = NULL, type = 'scatter') {
   xy = unname(cbind(x, y))

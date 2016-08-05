@@ -1,4 +1,7 @@
-﻿# Function echartR with package recharts
+**I am currently rewriting the entire package. This guideline is outdated**
+**正在重写包，本指南已过时。**
+
+# Function echartR with package recharts
 Author: `r Sys.info()[['user']]`  
 Edited: `r format(Sys.time(),'%x %X')`  
 

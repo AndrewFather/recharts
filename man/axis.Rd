@@ -6,14 +6,14 @@
 \alias{eYAxis}
 \title{Create an axis for a chart}
 \usage{
-eAxis(chart, which = c("x", "y"), type = c("value", "category", "time"),
-  show = TRUE, position = c("bottom", "top", "left", "right"), name = "",
-  nameLocation = c("end", "start"), nameTextStyle = emptyList(),
-  boundaryGap = c(0, 0), min = NULL, max = NULL, scale = TRUE,
-  splitNumber = NULL, axisLine = list(show = TRUE, onZero = FALSE),
-  axisTick = list(show = FALSE), axisLabel = list(show = TRUE),
-  splitLine = list(show = TRUE), splitArea = list(show = FALSE),
-  data = list())
+eAxis(chart, which = c("x", "y"), type = c("value", "category", "time",
+  "log"), show = TRUE, position = c("bottom", "top", "left", "right"),
+  name = "", nameLocation = c("end", "start"),
+  nameTextStyle = emptyList(), boundaryGap = c(0, 0), min = NULL,
+  max = NULL, scale = TRUE, splitNumber = NULL, axisLine = list(show =
+  TRUE, onZero = FALSE), axisTick = list(show = FALSE),
+  axisLabel = list(show = TRUE), splitLine = list(show = TRUE),
+  splitArea = list(show = FALSE), data = list())
 
 eXAxis(chart, ...)
 

@@ -6,16 +6,16 @@ series_scatter <- function(lst, type, return=NULL, ...){
     if (!is.null(lst$weight)){  # weight as symbolSize
         minWeight <- min(lst$weight[,1], na.rm=TRUE)
         range <- max(lst$weight[,1], na.rm=TRUE) - minWeight
-        symbolSizeJS <- paste('function (value){
+        jsSymbolSize <- JS(paste('function (value){
                 return Math.round(1+9*(value[2]-', minWeight,')/', range, ');
-                }')
+                }'))
     }
     obj <- list()
     if (is.null(lst$series)) {
         if (is.null(lst$weight))
             obj <- list(list(type=type[1], data=data))
         else
-            obj <- list(list(type=type[1], data=data, symbolSize=JS(symbolSizeJS)))
+            obj <- list(list(type=type[1], data=data, symbolSize=jsSymbolSize))
     }else{
         data <- cbind(data, lst$series[,1])
         data = split(as.data.frame(data), lst$series[,1])
@@ -28,7 +28,7 @@ series_scatter <- function(lst, type, return=NULL, ...){
             for (i in seq_along(data)) {
                 obj[[i]] = list(name = names(data)[i], type = type[i],
                                 data = unname(as.matrix(data[[i]])),
-                                symbolSize=JS(symbolSizeJS))
+                                symbolSize=jsSymbolSize)
             }
         }
     }

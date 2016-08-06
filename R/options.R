@@ -246,7 +246,8 @@ tuneGrid <- function(chart, ...){
 
 makeTitle <- function(title=NULL, subtitle=NULL, link=NULL, sublink=NULL,
                       pos=6, bgColor=NULL, borderColor=NULL,
-                      borderWidth=NULL, textStyle=NULL, subtextStyle=NULL, ...){
+                      borderWidth=NULL, textStyle=NULL, subtextStyle=NULL,
+                      ...){
     # Work function for setTitle
     title <- ifnull(title, "")
     subtitle <- ifnull(subtitle, "")
@@ -1100,10 +1101,6 @@ getYFromEChart <- function(chart, ...){
 #' g %>% setSymbolList(c('heart', 'pin'))
 #' }
 setSymbolList <- function(chart, symbolList=NULL, ...){
-    validSymbols <- c('circle', 'rectangle', 'triangle', 'diamond', 'emptyCircle',
-                      'emptyRectangle', 'emptyTriangle', 'emptyDiamond', 'heart',
-                      'droplet', 'pin', 'arrow', 'star5', 'star6', 'star7', 'star8',
-                      'none')
     stopifnot(inherits(chart, 'echarts'))
     hasZ <- 'timeline' %in% names(chart$x)
     if (!is.null(symbolList)) {
@@ -1756,6 +1753,162 @@ setTooltip <- function(chart, series=NULL, timeslots=NULL, trigger=NULL,
     }
 
     eval(parse(text=paste(lhs, "<-", rhs)))
+    return(chart)
+}
+
+
+#' Set \code{timeline} of Echarts
+#'
+#' Set timeline of Echarts when the echarts object contains timeline slices (z). \cr
+#' When an echart object is generated, you can modify it by setting tooltip using
+#' \code{\link{\%>\%}}.
+#' @param show Logical. If or not the timeline is shown. Default TRUE.
+#' @param type 'time' or 'number' format of the timeline. Default 'time'.
+#' @param realtime Logical. If or not the changes take effect in realtime manner.
+#' Default TRUE.
+#' @param grid A list of \code{x, y, x2, y2}. x, y refers to the coorindate of the
+#' upper-left point while x2, y2 refers to that of the lower-right point. Default
+#' \code{list(80, NULL, 80, 0)}.
+#' @param width Width of the timeline. Could be a number or a character in percent
+#' form. Default NULL.
+#' @param height Height of the timeline. Default 50 (px).
+#' @param bgColor Background color of the timeline. Default "rgba(0,0,0,0)" (transparent).
+#' @param borderColor Border color of the timeline. Default "#ccc".
+#' @param borderWidth Border width of the timeline. Default 0 (px) (not shown).
+#' @param controlPosition Position of the control of the timeline. Could be 'left',
+#' 'right' or 'none'. Default 'left'.
+#' @param autoPlay Logical. If or not the timeline auto displays. Default FALSE.
+#' @param loop Logical. If or not the timeline displays in loop mode. Default TRUE.
+#' @param playInterval Interval when displays each timeslice. Default 2000 (ms).
+#' @param lineStyle A list. Line style of the timeline. Default value: \cr
+#' \code{list(color="#666", width=1, type="dashed")}. \cr Supports features of \code{'color',
+#' 'width', 'type', 'shadowColor', 'shadowBlur', 'shadowOffsetX', 'shadowOffsetY'}
+#' @param label A list. Label style of the timeline. Default value: \cr
+#' \code{list(show=TRUE, interval="auto", rotate=0, formatter=NULL, \cr
+#' textStyle=list(color="#333"))}. \cr Supports features of \code{'show', 'interval',
+#'  'rotate', 'formatter', 'textStyle'}.
+#' @param checkpointStyle A list. Checkpoint style of the timeline. Default value: \cr
+#' \code{list(symbol="auto", symbolSize="auto", color="auto", \cr
+#' borderColor="auto", borderWidth="auto", \cr
+#' label=list(show=FALSE, textStyle=list(color="auto")))}. \cr
+#' Supports features of \code{'symbol', 'symbolSize', 'color', 'borderColor',
+#' 'borderWidth', 'label'}.
+#' @param controlStyle A list. Control style of the timeline. Default value: \cr
+#' \code{list(itemSize=15, itemGap=5, normal=list(color="#333"),
+#' emphasis=list(color="#1e90ff"))}. \cr
+#' Supports features of \code{'itemSize', 'itemGap', 'normal', 'emphasis'}.
+#' @param symbol Character. The symbol used in timeline. Default 'emptyDiamond'.
+#' You can use symbols in \code{\link{setSymbolList}}.
+#' @param symbolSize The size of the symbols. Default 4.
+#' @param currentIndex The current index position, in correspondance with \code{z}.
+#' It is used to show specific timeline slices. Default 0.
+#' @param data The data list of the timeline, also used as timeline data label.
+#' Default NULL.
+#' @param ... Elipsis
+#'
+#' @return A modified echarts object
+#' @export
+#'
+#' @references \url{http://echarts.baidu.com/echarts2/doc/option.html#title~timeline}
+#' @examples
+#' \dontrun{
+#' iris$tag <- 1 + as.integer(row.names(iris)) %% 3
+#' iris <- iris[order(iris$tag),]
+#' g <- echartR(iris, Sepal.Width, Petal.Width, series=Species, z=tag)
+#' g %>% setTimeline(grid=list(80, NULL, 80, 30), symbol='emptyCircle',
+#'                   autoPlay=FALSE, data=c('tag 1', 'tag 2', 'tag 3'))
+#' }
+#'
+setTimeline <- function(chart, show=TRUE, type=c('time', 'number'), realtime=TRUE,
+                        grid=list(80, NULL, 80, 0), width=NULL, height=50,
+                        bgColor='rgba(0,0,0,0)', borderColor='#ccc',
+                        borderWidth=0, controlPosition=c('left', 'right', 'none'),
+                        autoPlay=FALSE, loop=TRUE, playInterval=2000,
+                        lineStyle=NULL, label=NULL, checkpointStyle=NULL,
+                        controlStyle=NULL, symbol='emptyDiamond', symbolSize=4,
+                        currentIndex=0, data=NULL,
+                        ...){
+    stopifnot(inherits(chart, 'echarts'))
+    if (! 'timeline' %in% names(chart$x)) return(chart)
+    lst <- chart$x$timeline
+    type <- match.arg(type)
+    controlPosition <- match.arg(controlPosition)
+    if (! tolower(symbol) %in% tolower(validSymbols)){
+        symbol <- 'emptyDiamond'
+    }else{
+        symbol <- validSymbols[which(tolower(validSymbols) %in% tolower(symbol))]
+    }
+
+    ## default params
+    if (! ifnull(show, TRUE)) lst$show <- show
+    if (! ifnull(type, 'time') == 'time') lst$type <- type
+    if (! ifnull(realtime, TRUE)) lst$realtime <- realtime
+    if (! ifnull(grid[[1]], 80) == 80) lst$x <- grid[[1]]
+    if (! is.null(grid[[1]])) lst$y <- grid[[2]]
+    if (! ifnull(grid[[3]], 80) == 80) lst$x2 <- grid[[3]]
+    if (! ifnull(grid[[4]], 0) == 0) lst$y2 <- grid[[4]]
+    if (! is.null(width)) lst$width <- width
+    if (! ifnull(height, 50) == 50) lst$height <- height
+    if (! ifnull(bgColor, 'rgba(0,0,0,0)') == 'rgba(0,0,0,0)')
+        lst$backgroundColor <- getColors(bgColor)
+    if (! ifnull(borderColor, '#ccc') == '#ccc') lst$borderColor <- borderColor
+    if (! ifnull(borderWidth, 0) == 0) lst$borderWidth <- borderWidth
+    if (! ifnull(controlPosition, 'left') == 'left')
+        lst$controlPosition <- controlPosition
+    if (ifnull(autoPlay, FALSE)) lst$autoPlay <- autoPlay
+    if (! ifnull(loop, TRUE)) lst$loop <- loop
+    if (! ifnull(playInterval, 2000) == 2000) lst$playInterval <- playInterval
+
+    if (! identical(ifnull(lineStyle, list(color="#666", width=1, type="dashed")),
+                    list(color="#666", width=1, type="dashed"))){
+        validLineStyleFeature <- c('color', 'width', 'type', 'shadowColor',
+                                   'shadowBlur', 'shadowOffsetX', 'shadowOffsetY')
+        if (! all(names(lineStyle) %in% validLineStyleFeature))
+            stop(paste("Only supports lineStyle features as below:\n",
+                       validLineStyleFeature))
+        lst$lineStyle <- lineStyle
+    }
+
+    defaultLabel <- list(show=TRUE, interval="auto", rotate=0,
+        formatter=NULL, textStyle=list(color="#333"))
+    if (! identical(ifnull(label, defaultLabel), defaultLabel)){
+        validLabelFeature <- c('show', 'interval', 'rotate', 'formatter',
+                                   'textStyle')
+        if (! all(names(label) %in% validLabelFeature))
+            stop(paste("Only supports label features as below:\n",
+                       validLabelFeature))
+        lst$label <- label
+    }
+
+    defaultCheckpoint <- list(symbol="auto", symbolSize="auto", color="auto",
+                              borderColor="auto", borderWidth="auto",
+                              label=list(show=FALSE, textStyle=list(color="auto")))
+    if (! identical(ifnull(checkpointStyle, defaultCheckpoint),
+                    defaultCheckpoint)){
+        validCheckpointFeature <- c('symbol', 'symbolSize', 'color', 'borderColor',
+                                    'borderWidth', 'label')
+        if (! all(names(checkpointStyle) %in% validCheckpointFeature))
+            stop(paste("Only supports checkpointStyle features as below:\n",
+                       validCheckpointFeature))
+        lst$checkpointStyle <- checkpointStyle
+    }
+
+    defaultControl <- list(itemSize=15, itemGap=5, normal=list(color="#333"),
+                           emphasis=list(color="#1e90ff"))
+    if (! identical(ifnull(controlStyle, defaultControl), defaultControl)){
+        validControlFeature <- c('itemSize', 'itemGap', 'normal', 'emphasis')
+        if (! all(names(controlStyle) %in% validControlFeature))
+            stop(paste("Only supports controlStyle features as below:\n",
+                       validControlFeature))
+        lst$controlStyle <- controlStyle
+    }
+
+    if (! ifnull(symbol, "emptyDiamond") == "emptyDiamond")
+        lst$symbol <- symbol
+    if (! ifnull(symbolSize, 4) == 4) lst$symbolSize <- symbolSize
+    if (! ifnull(currentIndex, 0) == 0) lst$currentIndex <- currentIndex
+    if (! is.null(data)) lst$data <- data
+    chart$x$timeline <- lst
     return(chart)
 }
 

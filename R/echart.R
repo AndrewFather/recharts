@@ -142,14 +142,14 @@ echartr = function(
     }
     if (nlevels(as.factor(dfType$xyflip)) > 1)
         warning(paste("xyflip is not consistent across the types given.\n",
-                      dfType[,c("name", "type", "xyflip")]))
+                      dfType[, "xyflip"]))
 
     # ---------------------------params list----------------------
     .makeSeriesList <- function(z){  # each timeline create a options list
-        data_fun = getFromNamespace(paste0('series_', dfType$type[1]),
+        series_fun = getFromNamespace(paste0('series_', dfType$type[1]),
                                     'recharts')
         out <- structure(list(
-            series <- data_fun(metaData[[z]], type=dfType$type)
+            series <- series_fun(metaData[[z]], type=dfType$type)
         ), meta = metaData[[z]])
         return(out)
     }
@@ -177,7 +177,7 @@ echartr = function(
     # -------------------output-------------------------------
     chart = htmlwidgets::createWidget(
         'echarts', params, width = NULL, height = NULL, package = 'recharts',
-        dependencies = getDependency(type)
+        dependencies = sapply(c('base', unique(dtType$type)), getDependency)
     )
 
     if (any(type %in% c('line', 'bar', 'scatter'))){

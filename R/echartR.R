@@ -315,9 +315,9 @@ echartR <- function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
 
         #---------timeline--------------
         if (!is.null(z)){
-            lstTimeline <- list(data=timeslice, autoPlay=TRUE)
+            lstTimeline <- list(data=timeslice)
             attr(lstTimeline, 'sliceby') <- zvar
-            if (!is.null(title) & pos[['title']] %in% 5:7) lstTimeline[['y2']] <- 50
+            #if (!is.null(title) & pos[['title']] %in% 5:7) lstTimeline[['y2']] <- 50
         }
 
 

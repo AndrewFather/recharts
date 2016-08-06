@@ -1,0 +1,11 @@
+name,type,smooth,fill,xyflip,mapType,mapMode
+scatter,scatter,FALSE,FALSE,FALSE,,
+point,scatter,FALSE,FALSE,FALSE,,
+bubble,scatter,FALSE,FALSE,FALSE,,
+vbar,bar,FALSE,FALSE,FALSE,,
+hbar,bar,FALSE,FALSE,TRUE,,
+histogram,bar,FALSE,FALSE,FALSE,,
+line,line,FALSE,FALSE,FALSE,,
+line_smooth,line,TRUE,FALSE,FALSE,,
+area,line,FALSE,TRUE,FALSE,,
+area_smooth,line,TRUE,TRUE,FALSE,,

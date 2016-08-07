@@ -50,7 +50,7 @@ form. Default NULL.}
 'width', 'type', 'shadowColor', 'shadowBlur', 'shadowOffsetX', 'shadowOffsetY'}}
 
 \item{label}{A list. Label style of the timeline. Default value: \cr
-\code{list(show=true, interval="auto", rotate=0, formatter=NULL, \cr
+\code{list(show=TRUE, interval="auto", rotate=0, formatter=NULL, \cr
 textStyle=list(color="#333"))}. \cr Supports features of \code{'show', 'interval',
  'rotate', 'formatter', 'textStyle'}.}
 
@@ -92,8 +92,12 @@ When an echart object is generated, you can modify it by setting tooltip using
 iris$tag <- 1 + as.integer(row.names(iris)) \%\% 3
 iris <- iris[order(iris$tag),]
 g <- echartR(iris, Sepal.Width, Petal.Width, series=Species, z=tag)
-g \%>\% setTimeline(symbol='emptyCircle')
+g \%>\% setTimeline(grid=list(80, NULL, 80, 30), symbol='emptyCircle',
+                  autoPlay=FALSE, data=c('tag 1', 'tag 2', 'tag 3'))
 }
 
+}
+\references{
+\url{http://echarts.baidu.com/echarts2/doc/option.html#title~timeline}
 }
 

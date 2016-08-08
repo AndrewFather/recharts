@@ -4,32 +4,34 @@ series_scatter <- function(lst, type, return=NULL, ...){
     data <- cbind(lst$y[,1], lst$x[,1])
 
     if (!is.null(lst$weight)){  # weight as symbolSize
+        data <- cbind(data, lst$weight[,1])
         minWeight <- min(lst$weight[,1], na.rm=TRUE)
         range <- max(lst$weight[,1], na.rm=TRUE) - minWeight
-        jsSymbolSize <- JS(paste('function (value){
-                return Math.round(1+9*(value[2]-', minWeight,')/', range, ');
+        jsSymbolSize <- JS(paste0('function (value){
+                return Math.round(1+19*(value[2]-', minWeight,')/', range, ');
                 }'))
     }
     obj <- list()
-    if (is.null(lst$series)) {
+    if (is.null(lst$series)) {  # no series
         if (is.null(lst$weight))
-            obj <- list(list(type=type[1], data=data))
+            obj <- list(list(type=type[1], data=data[,1:2]))
         else
-            obj <- list(list(type=type[1], data=data, symbolSize=jsSymbolSize))
-    }else{
+            obj <- list(list(type=type[1], data=data[,1:3],
+                             symbolSize=jsSymbolSize))
+    }else{  # series-specific
         data <- cbind(data, lst$series[,1])
-        data = split(as.data.frame(data), lst$series[,1])
+        data <- split(as.data.frame(data), lst$series[,1])
         if (is.null(lst$weight)){
-            for (i in seq_along(data)) {
-                obj[[i]] = list(name = names(data)[i], type = type[i],
-                                data = unname(as.matrix(data[[i]])))
-            }
+            obj <- lapply(seq_along(data), function(i){
+                list(name = names(data)[i], type = type[i],
+                     data = unname(as.matrix(data[[i]])[,1:2]))
+            })  ## only fetch col 1-2 of data, col 3 is series
         }else{
-            for (i in seq_along(data)) {
-                obj[[i]] = list(name = names(data)[i], type = type[i],
-                                data = unname(as.matrix(data[[i]])),
-                                symbolSize=jsSymbolSize)
-            }
+            obj <- lapply(seq_along(data), function(i){
+                list(name = names(data)[i], type = type[i],
+                     data = unname(as.matrix(data[[i]])[,c(1:3)]),
+                     symbolSize=jsSymbolSize)
+            })  ## fetch col 1-2 and 3 (x, y, weight)
         }
     }
 

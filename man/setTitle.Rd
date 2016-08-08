@@ -91,8 +91,8 @@ g1 \%>\% setTitle(titles,
               list(fontFamily='Calibri', color='blue', fontStyle='oblique')
           ),
        bgColor='lightyellow')
-}  ## textStyle is a list length 3, mapping 3 levels for timeline
-
+  ## textStyle is a list length 3, mapping 3 levels for timeline
+}
 }
 \references{
 \url{http://echarts.baidu.com/echarts2/doc/option.html#title~title}

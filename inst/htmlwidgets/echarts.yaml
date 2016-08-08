@@ -2,4 +2,16 @@ dependencies:
   - name: echarts
     version: 2.2.7
     src: htmlwidgets/lib/echarts
-    script: echarts-all.js
+    script:
+      - echarts-all.js
+      - themes/blue.js
+      - themes/dark.js
+      - themes/gray.js
+      - themes/green.js
+      - themes/helianthus.js
+      - themes/macarons.js
+      - themes/mint.js
+      - themes/red.js
+      - themes/roma.js
+      - themes/sakura.js
+      - themes/shine.js

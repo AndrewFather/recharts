@@ -4,8 +4,7 @@
 #' Markdown documents, or Shiny apps. You can add more components to this widget
 #' and customize options later. \code{eChart()} is an alias of \code{echart()}.
 #' @param data a data object (usually a data frame or a list)
-#' @rdname eChart
-#' @importFrom jsonlite toJSON
+#' @rdname eChart#'
 #' @export
 #' @examples library(recharts)
 #' echart(iris, ~ Sepal.Length, ~ Sepal.Width)
@@ -16,18 +15,7 @@ echart = function(data, ...) {
 
 #' @export
 #' @rdname eChart
-echart.list = function(
-    data, width = NULL, height = NULL,
-    theme=c('default', 'macarons', 'infographic', 'blue', 'dark', 'gray', 'green',
-            'helianthus', 'macarons2', 'mint', 'red', 'roma', 'sakura', 'shine'),
-    ...) {
-    theme = match.arg(theme)
-    #attr(data, "theme") <- theme
-    theme <- system.file(paste0("htmlwidgets/lib/themes/",
-                                theme, ".js"), package='recharts')
-    theme <- paste(readLines(theme, encoding="UTF-8"), collpase="\n")
-
-    data$theme <- toJSON(theme)
+echart.list = function(data, width = NULL, height = NULL,  ...) {
     htmlwidgets::createWidget(
         'echarts', x = data, width = width, height = height,
         package = 'recharts'
@@ -40,15 +28,11 @@ echart.list = function(
 #' @rdname eChart
 echart.data.frame = function(
     data = NULL, x = NULL, y = NULL, series = NULL, type = 'auto',
-    width = NULL, height = NULL,
-    theme=c('default', 'macarons', 'infographic', 'blue', 'dark', 'gray', 'green',
-            'helianthus', 'macarons2', 'mint', 'red', 'roma', 'sakura', 'shine'),
-    ...
+    width = NULL, height = NULL, ...
 ) {
 
     xlab = autoArgLabel(x, deparse(substitute(x)))
     ylab = autoArgLabel(y, deparse(substitute(y)))
-    theme = match.arg(theme)
 
     x = evalFormula(x, data)
     y = evalFormula(y, data)
@@ -72,19 +56,12 @@ echart.data.frame = function(
         params$legend = list(data = levels(as.factor(series)))
     }
 
-    #attr(params, "theme") <- theme
-    theme <- system.file(paste0("htmlwidgets/lib/themes/",
-                          theme, ".js"), package='recharts')
-    theme <- paste(readLines(theme, encoding="UTF-8"), collpase="\n")
-    params$theme <- toJSON(theme)
-
     chart = htmlwidgets::createWidget(
         'echarts', x = params, width = width, height = height,
         package = 'recharts', dependencies = getDependency(type)
     )
 
     chart %>% eAxis('x', name = xlab) %>% eAxis('y', name = ylab)
-
 
 }
 

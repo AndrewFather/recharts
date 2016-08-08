@@ -44,7 +44,7 @@ series_scatter <- function(lst, type, return=NULL, ...){
 
 
 
-
+#---------------------------legacy functions-----------------------------------
 # split the data matrix for a scatterplot by series
 data_scatter = function(x, y, series = NULL, type = 'scatter') {
   xy = unname(cbind(x, y))

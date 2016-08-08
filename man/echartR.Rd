@@ -14,7 +14,8 @@ echartR(data, x = NULL, y = x, z = NULL, series = NULL, weight = NULL,
   ylab1 = NULL, yAxis1 = list(lab = ylab1, series = NULL, reverse = FALSE,
   color = NULL, splitLine = TRUE, banded = FALSE, rotate = 0), xyflip = FALSE,
   AxisAtZero = c(FALSE, TRUE), scale = TRUE, pos = list(title = 6, legend
-  = 11, toolbox = 1, dataZoom = 6, dataRange = 8, roam = 2), ...)
+  = 11, toolbox = 1, dataZoom = 6, dataRange = 8, roam = 2),
+  theme = "macarons", ...)
 }
 \arguments{
 \item{data}{data.frame. No defaults.}

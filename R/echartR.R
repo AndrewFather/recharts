@@ -87,7 +87,7 @@ echartR <- function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
                                           banded=FALSE, rotate=0),
                   xyflip=FALSE, AxisAtZero=c(FALSE,TRUE), scale=TRUE,
                   pos=list(title=6, legend=11, toolbox=1, dataZoom=6,
-                           dataRange=8, roam=2),
+                           dataRange=8, roam=2), theme='macarons',
                   ...){
 
     #--------recognize variable names--------------------------
@@ -1106,9 +1106,9 @@ echartR <- function(data, x=NULL, y=x, z=NULL, series=NULL, weight=NULL,
         }# loop end over z
     #----------Finally plot it---------
     if (!is.null(z)) {
-        output <- echart(list(timeline=lstTimeline, options=chartobj))
+        output <- echart(list(timeline=lstTimeline, options=chartobj), theme=theme)
     }else{
-        output <- echart(chartobj)
+        output <- echart(chartobj, theme=theme)
     }
     output <- output %>% setToolbox() %>% setLegend(show=TRUE) %>% setTooltip()
     #if (!is.null(theme$width)) if (is.numeric(theme$width)) output$width <- theme$width

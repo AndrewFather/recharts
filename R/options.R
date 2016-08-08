@@ -59,6 +59,49 @@ eYAxis = function(chart, ...) {
   eAxis(chart, which = 'y', ...)
 }
 
+
+setAxis = function(
+    chart, which = c('x', 'y', 'x1', 'y1'), series=NULL,
+    type = c('value', 'category', 'time', 'log'), show = TRUE,
+    position = c('bottom', 'top', 'left', 'right'),
+    name = '', nameLocation = c('end', 'start'), nameTextStyle = emptyList(),
+    boundaryGap = c(0, 0), min = NULL, max = NULL, scale = TRUE, splitNumber = NULL,
+    axisLine = list(show = TRUE, onZero = FALSE), axisTick = list(show = FALSE),
+    axisLabel = list(show = TRUE), splitLine = list(show = TRUE),
+    splitArea = list(show = FALSE), data = list()
+) {
+    stopifnot(inherits(chart, 'echarts'))
+    which = match.arg(which)
+    odata = getMeta(chart)[[which]]  # original data along the axis
+    if (missing(type)) type = axisType(odata, which)
+    if (missing(position)) position = if (which == 'x') 'bottom' else 'left'
+    if (missing(data) && type == 'category') {
+        data = I(levels(as.factor(odata)))
+    }
+
+    x = chart$x
+    i = paste0(which, 'Axis')
+    o = list(
+        type = match.arg(type), show = show, position = match.arg(position),
+        name = name, nameLocation = match.arg(nameLocation), nameTextStyle = nameTextStyle,
+        boundaryGap = boundaryGap, min = min, max = max, scale = scale,
+        splitNumber = splitNumber, axisLine = axisLine, axisTick = axisTick,
+        axisLabel = axisLabel, splitLine = splitLine, splitArea = splitArea, data = data
+    )
+    if (length(x[[i]])) {
+        # only merge the arguments that are not missing, e.g. eAxis(min = 0) will
+        # only override 'min' but will not override the 'name' attribute
+        a = intersect(names(as.list(match.call()[-1])), names(o))  #;browser()
+        x[[i]] = mergeList(x[[i]], o[a])
+    } else {
+        x[[i]] = mergeList(x[[i]], o)
+    }
+    chart$x = x
+
+    return(chart)
+}
+
+
 axisType = function(data, which = c('x', 'y')) {
   if (is.numeric(data) || is.null(data)) return('value')
   if (is.factor(data) || is.character(data)) return('category')
@@ -374,8 +417,8 @@ makeTitle <- function(title=NULL, subtitle=NULL, link=NULL, sublink=NULL,
 #'               list(fontFamily='Calibri', color='blue', fontStyle='oblique')
 #'           ),
 #'        bgColor='lightyellow')
-#' }  ## textStyle is a list length 3, mapping 3 levels for timeline
-#'
+#'   ## textStyle is a list length 3, mapping 3 levels for timeline
+#' }
 setTitle <- function(chart, title=NULL, subtitle=NULL, link=NULL, sublink=NULL,
                      pos=6, bgColor=NULL, borderColor=NULL, borderWidth=NULL,
                      textStyle=NULL, subtextStyle=NULL, ...){

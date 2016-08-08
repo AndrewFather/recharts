@@ -5,6 +5,7 @@
 #' and customize options later. \code{eChart()} is an alias of \code{echart()}.
 #' @param data a data object (usually a data frame or a list)
 #' @rdname eChart
+#' @importFrom jsonlite toJSON
 #' @export
 #' @examples library(recharts)
 #' echart(iris, ~ Sepal.Length, ~ Sepal.Width)
@@ -15,9 +16,21 @@ echart = function(data, ...) {
 
 #' @export
 #' @rdname eChart
-echart.list = function(data, width = NULL, height = NULL, ...) {
+echart.list = function(
+    data, width = NULL, height = NULL,
+    theme=c('default', 'macarons', 'infographic', 'blue', 'dark', 'gray', 'green',
+            'helianthus', 'macarons2', 'mint', 'red', 'roma', 'sakura', 'shine'),
+    ...) {
+    theme = match.arg(theme)
+    #attr(data, "theme") <- theme
+    theme <- system.file(paste0("htmlwidgets/lib/themes/",
+                                theme, ".js"), package='recharts')
+    theme <- paste(readLines(theme, encoding="UTF-8"), collpase="\n")
+
+    data$theme <- toJSON(theme)
     htmlwidgets::createWidget(
-        'echarts', data, width = width, height = height, package = 'recharts'
+        'echarts', x = data, width = width, height = height,
+        package = 'recharts'
     )
 }
 
@@ -27,11 +40,15 @@ echart.list = function(data, width = NULL, height = NULL, ...) {
 #' @rdname eChart
 echart.data.frame = function(
     data = NULL, x = NULL, y = NULL, series = NULL, type = 'auto',
-    width = NULL, height = NULL, ...
+    width = NULL, height = NULL,
+    theme=c('default', 'macarons', 'infographic', 'blue', 'dark', 'gray', 'green',
+            'helianthus', 'macarons2', 'mint', 'red', 'roma', 'sakura', 'shine'),
+    ...
 ) {
 
     xlab = autoArgLabel(x, deparse(substitute(x)))
     ylab = autoArgLabel(y, deparse(substitute(y)))
+    theme = match.arg(theme)
 
     x = evalFormula(x, data)
     y = evalFormula(y, data)
@@ -55,12 +72,20 @@ echart.data.frame = function(
         params$legend = list(data = levels(as.factor(series)))
     }
 
+    #attr(params, "theme") <- theme
+    theme <- system.file(paste0("htmlwidgets/lib/themes/",
+                          theme, ".js"), package='recharts')
+    theme <- paste(readLines(theme, encoding="UTF-8"), collpase="\n")
+    params$theme <- toJSON(theme)
+
     chart = htmlwidgets::createWidget(
-        'echarts', params, width = width, height = height, package = 'recharts',
-        dependencies = getDependency(type)
+        'echarts', x = params, width = width, height = height,
+        package = 'recharts', dependencies = getDependency(type)
     )
 
     chart %>% eAxis('x', name = xlab) %>% eAxis('y', name = ylab)
+
+
 }
 
 #' @export
@@ -148,9 +173,16 @@ echartr = function(
     .makeSeriesList <- function(z){  # each timeline create a options list
         series_fun = getFromNamespace(paste0('series_', dfType$type[1]),
                                     'recharts')
-        out <- structure(list(
-            series <- series_fun(metaData[[z]], type=dfType$type)
-        ), meta = metaData[[z]])
+        if (is.null(z)){  # no timeline
+            out <- structure(list(
+                series = series_fun(metaData, type=dfType$type)
+            ), meta = metaData)
+        }else{
+            out <- structure(list(
+                series = series_fun(metaData[[z]], type=dfType$type)
+            ), meta = metaData[[z]])
+        }
+
         return(out)
     }
 
@@ -166,21 +198,21 @@ echartr = function(
             )
 
     }else{
-        params = .makeSeriesList(1)
+        params = .makeSeriesList(NULL)
         if (!is.null(series))
             params$legend <- list(
                 data = as.list(levels(as.factor(series[,1])))
             )
     }
 
-
+browser()
     # -------------------output-------------------------------
     chart = htmlwidgets::createWidget(
         'echarts', params, width = NULL, height = NULL, package = 'recharts',
-        dependencies = sapply(c('base', unique(dtType$type)), getDependency)
+        dependencies = lapply(c('base', unique(dfType$type)), getDependency)
     )
 
-    if (any(type %in% c('line', 'bar', 'scatter'))){
+    if (any(type %in% c('line', 'bar', 'scatter', 'k'))){
         chart %>% eAxis('x', name = xlab) %>% eAxis('y', name = ylab)
     }else{
         chart

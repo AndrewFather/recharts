@@ -1505,15 +1505,22 @@ setTheme <- function(chart, theme=c(
     ...){
     stopifnot(inherits(chart, 'echarts'))
     theme <- match.arg(theme)
-    # if (theme %in% c('default', 'macarons', 'infographic')){
+    if (theme %in% c('default', 'macarons', 'infographic')){
         chart$x[['theme']] <- theme
-    # }else{
-    #     themeFile <- system.file(paste0("htmlwidgets/lib/themes/",
-    #                                     # theme, ".js"), package='recharts')
-    #     themeJS <- paste(readLines(themeFile, encoding="UTF-8"), collpase="\n")
-    #     themeJS <- toJSON(gsub("\\/\\/[^\\]+\\n", "\n", themeJS))
-    #     chart$x[['theme']] <- themeJS
-    # }
+    }else{
+        # themeFile <- system.file(paste0("htmlwidgets/lib/echarts/themes/",
+        #                                 theme, ".js"), package='recharts')
+        #
+        # themeJS <- paste(readLines(themeFile, encoding="UTF-8"), collapse="\n")
+        # themeJS <- gsub("\\/\\/[^\\]+?\\n", "", themeJS)
+        # themeJS <- gsub("\\n| ", "", themeJS)
+        # themeJS <- gsub("^define\\((.+)\\);$", "\\1", themeJS)
+        # themeJS <- gsub("^function\\(\\)\\{vartheme=(.+);returntheme;\\}$",
+        #                 "\\1", themeJS)
+        # themeJS <- gsub("^\\{(.+)\\}$", "\\1", themeJS)
+        # chart$x[['theme']] <- themeJS
+        chart$x[['theme']] <- theme
+    }
     return(chart)
 }
 

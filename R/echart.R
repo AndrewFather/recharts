@@ -4,7 +4,7 @@
 #' Markdown documents, or Shiny apps. You can add more components to this widget
 #' and customize options later. \code{eChart()} is an alias of \code{echart()}.
 #' @param data a data object (usually a data frame or a list)
-#' @rdname eChart#'
+#' @rdname eChart
 #' @export
 #' @examples library(recharts)
 #' echart(iris, ~ Sepal.Length, ~ Sepal.Width)
@@ -13,6 +13,11 @@ echart = function(data, ...) {
     UseMethod('echart')
 }
 
+#' Create an ECharts widget
+#'
+#' echart method for list
+#' @param width width
+#' @param height height
 #' @export
 #' @rdname eChart
 echart.list = function(data, width = NULL, height = NULL,  ...) {
@@ -22,9 +27,15 @@ echart.list = function(data, width = NULL, height = NULL,  ...) {
     )
 }
 
+#' Create an ECharts widget
+#'
+#' echart method for data.frame
 #' @param x the x variable
 #' @param y the y variable
+#' @param series series
+#' @param type type, default 'auto'
 #' @export
+#'
 #' @rdname eChart
 echart.data.frame = function(
     data = NULL, x = NULL, y = NULL, series = NULL, type = 'auto',
@@ -92,9 +103,6 @@ echartr = function(
     eval(parse(text=paste0(names(vArgs), " <- evalVarArg(",
                            sapply(vArgs, deparse), ", data)")))
     hasZ <- ! is.null(z)
-    if (hasZ) if (! (is.numeric(z[,1]) ||
-                            inherits(z[,1], c("Date", "POSIXct", "POSIXlt"))))
-        stop("z (timeline) must be numeric or data/time!")
 
     # ------------------x, y lab(s)----------------------------
     xlab = sapply(xvar, autoArgLabel, auto=deparse(substitute(xvar)))
@@ -110,9 +118,13 @@ echartr = function(
     }
     if (hasZ){
         uniZ <- unique(z[,1])
+        if (is.factor(uniZ)) uniZ <- as.character(uniZ)
         dataByZ <- split(data, as.factor(z[,1]))
         metaData <- lapply(dataByZ, .makeMetaDataList)
         names(metaData) <- uniZ
+        if (! identical(unique(z[,1]), sort(unique(z[,1]))) &&
+            ! identical(unique(z[,1]), sort(unique(z[,1]), TRUE)))
+            warning("z is not in order, the chart may not show properly!")
     }else{
         metaData <- .makeMetaDataList(data)
     }
@@ -138,9 +150,9 @@ echartr = function(
 
     ## check types
     if (nlevels(as.factor(dfType$type)) > 1){
-        if (!all(grepl("^(line|bar|scatter)", dfType$type)))
+        if (!all(grepl("^(line|bar|scatter|k)", dfType$type)))
             stop(paste("Only Cartesion Coordinates charts (scatter/point/bubble,",
-                       "line, area, bar) support mixed types"))
+                       "line, area, bar, k) support mixed types"))
     }
     if (nlevels(as.factor(dfType$xyflip)) > 1)
         warning(paste("xyflip is not consistent across the types given.\n",
@@ -164,16 +176,14 @@ echartr = function(
     }
 
     if (hasZ){  ## has timeline
-
         params = list(
-            timeline=list(show=TRUE, y2=50),
+            timeline=list(),
             options=lapply(1:length(uniZ), .makeSeriesList)
         )
         if (!is.null(series))
             params$options[[1]]$legend <- list(
                 data = as.list(levels(as.factor(series[,1])))
             )
-
     }else{
         params = .makeSeriesList(NULL)
         if (!is.null(series))
@@ -188,6 +198,10 @@ browser()
         'echarts', params, width = NULL, height = NULL, package = 'recharts',
         dependencies = lapply(c('base', unique(dfType$type)), getDependency)
     )
+
+    if (hasZ){
+        chart <- chart %>% setTimeline(show=TRUE, y2=50, data=uniZ)
+    }
 
     if (any(type %in% c('line', 'bar', 'scatter', 'k'))){
         chart %>% eAxis('x', name = xlab) %>% eAxis('y', name = ylab)
@@ -225,6 +239,9 @@ getDependency = function(type) {
     )
 }
 
-getMeta = function(chart) {
-    attr(chart$x, 'meta', exact = TRUE)
+getMeta = function(obj) {
+    if (inherits(obj, "echarts"))
+        attr(obj$x, 'meta', exact = TRUE)
+    else
+        attr(obj, "meta", exact = TRUE)
 }

@@ -1,5 +1,6 @@
-validChartTypes <<- read.csv(
-        system.file('validChartTypes.csv', package = 'recharts'), header=TRUE)
+validChartTypes <- read.csv(
+        system.file('validChartTypes.csv', package = 'recharts'), header=TRUE,
+        stringsAsFactors=FALSE)
 
 validSymbols <- c('circle', 'rectangle', 'triangle', 'diamond', 'emptyCircle',
                   'emptyRectangle', 'emptyTriangle', 'emptyDiamond', 'heart',

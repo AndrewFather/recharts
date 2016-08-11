@@ -1,3 +1,16 @@
+//require.config ({
+//    paths:{
+//        echarts: "http://echarts.baidu.com/echarts2/build/dist",
+//        ethemes: "http://echarts.baidu.com/echarts2/doc/example/theme"
+//    }
+//});
+
+//function _getTheme(theme){
+//    var myTheme;
+//    require(["echarts", "ethemes" + theme], function(theme){ myTheme = theme;});
+//    return myTheme;
+//}
+
 HTMLWidgets.widget({
   name: 'echarts',
   type: 'output',
@@ -15,14 +28,10 @@ HTMLWidgets.widget({
        theme === "infographic"){
         instance.setTheme(theme);
     }else{
-
-        var themeObj = require(['../lib/echarts/echarts-all',
-           '../lib/echarts/themes/' + theme],
-           function(theme){ return theme;});
-        //var themeObj = JSON.parse(theme);
-
-        alert(themeObj);
-        instance.setTheme(themeObj);
+        //var themeObj = _getTheme(theme);
+        //alert(typeof themeObj);
+        //instance.setTheme(themeObj);
+        instance.setTheme(theme);
     }
 	instance.setOption(x);
   },

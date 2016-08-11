@@ -61,7 +61,7 @@ eYAxis = function(chart, ...) {
 
 
 setAxis = function(
-    chart, which = c('x', 'y', 'x1', 'y1'), series=NULL,
+    chart, which = c('x', 'y', 'x1', 'y1'), series = NULL,
     type = c('value', 'category', 'time', 'log'), show = TRUE,
     position = c('bottom', 'top', 'left', 'right'),
     name = '', nameLocation = c('end', 'start'), nameTextStyle = emptyList(),
@@ -72,6 +72,8 @@ setAxis = function(
 ) {
     stopifnot(inherits(chart, 'echarts'))
     which = match.arg(which)
+    axIdx = ifna(as.integer(substr(which,2,3)), 0)
+    which = substr(which, 1, 2)
     odata = getMeta(chart)[[which]]  # original data along the axis
     if (missing(type)) type = axisType(odata, which)
     if (missing(position)) position = if (which == 'x') 'bottom' else 'left'

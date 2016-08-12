@@ -5,11 +5,21 @@ series_scatter <- function(lst, type, return=NULL, ...){
 
     if (!is.null(lst$weight)){  # weight as symbolSize
         data <- cbind(data, lst$weight[,1])
-        minWeight <- min(lst$weight[,1], na.rm=TRUE)
-        range <- max(lst$weight[,1], na.rm=TRUE) - minWeight
-        jsSymbolSize <- JS(paste0('function (value){
-                return Math.round(1+19*(value[2]-', minWeight,')/', range, ');
+        minWeight <- min(abs(lst$weight[,1]), na.rm=TRUE)
+        maxWeight <- max(abs(lst$weight[,1]), na.rm=TRUE)
+        range <- maxWeight - minWeight
+        folds <- maxWeight / minWeight
+        if (abs(folds) < 50){
+            jsSymbolSize <- JS(paste0('function (value){
+                return ', ifelse(abs(folds) < 5, 4, ifelse(abs(folds) < 10, 2, 1)),
+                '*Math.round(Math.abs(value[2]/', minWeight,'));
                 }'))
+        }else{
+            jsSymbolSize <- JS(paste0('function (value){
+                return Math.round(1+29*(Math.abs(value[2])-', minWeight,')/', range, ');
+            }'))
+        }
+
     }
     obj <- list()
     if (is.null(lst$series)) {  # no series

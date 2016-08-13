@@ -23,14 +23,26 @@ eChart(data, ...)
 \arguments{
 \item{data}{a data object (usually a data frame or a list)}
 
+\item{width}{width}
+
+\item{height}{height}
+
 \item{x}{the x variable}
 
 \item{y}{the y variable}
+
+\item{series}{series}
+
+\item{type}{type, default 'auto'}
 }
 \description{
 Create an HTML widget for ECharts that can be rendered in the R console, R
 Markdown documents, or Shiny apps. You can add more components to this widget
 and customize options later. \code{eChart()} is an alias of \code{echart()}.
+
+echart method for list
+
+echart method for data.frame
 }
 \examples{
 library(recharts)

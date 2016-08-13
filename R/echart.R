@@ -192,7 +192,6 @@ echartr = function(
             )
     }
 
-browser()
     # -------------------output-------------------------------
     chart = htmlwidgets::createWidget(
         'echarts', params, width = NULL, height = NULL, package = 'recharts',
@@ -204,7 +203,8 @@ browser()
     }
 
     if (any(type %in% c('line', 'bar', 'scatter', 'k'))){
-        chart %>% eAxis('x', name = xlab) %>% eAxis('y', name = ylab)
+        #chart %>% eAxis('x', name = xlab) %>% eAxis('y', name = ylab)
+        chart %>% setXAxis(name = xlab[[1]]) %>% setYAxis(name = ylab[[1]])
     }else{
         chart
     }

@@ -307,4 +307,9 @@ vecPos <- function(pos){
     return(as.vector(unlist(TblPos[pos,])))
 }
 
-
+exchange <- function(x, y){
+    a <- x
+    x <- y
+    y <- a
+    return(list(x, y))
+}

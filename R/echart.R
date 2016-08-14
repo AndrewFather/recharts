@@ -90,12 +90,14 @@ eChart = echart
 #' @export
 echartr = function(
     data, x = NULL, y = x, z = NULL, series = NULL, weight = NULL,
-    lat = NULL, lng = NULL, type = 'auto', xyflip = FALSE, ...
+    lat = NULL, lng = NULL, type = 'auto', ...
 ) {
     # experimental function
     #------------- get all arguments as a list-----------------
     vArgs <- as.list(match.call(expand.dots=TRUE))
-    vArgs <- vArgs[3:length(vArgs)]  # exclude `fun` and `data`
+    dataVars <- intersect(names(vArgs),
+                          c('x', 'y', 'z', 'series', 'weight', 'lat', 'lng'))
+    vArgs <- vArgs[dataVars]
 
     # ------------extract var names and values-----------------
     eval(parse(text=paste0(names(vArgs), "var <- evalVarArg(",
@@ -109,11 +111,14 @@ echartr = function(
     ylab = sapply(yvar, autoArgLabel, auto=deparse(substitute(yvar)))
 
     # -------------split multi-timeline df to lists-----------
-    dataVars <- intersect(names(vArgs),
-                          c('x', 'y', 'z', 'series', 'weight', 'lat', 'lng', 'type'))
+
     .makeMetaDataList <- function(df) {
-        assignment <- paste0(dataVars, " = ", substitute(df, parent.frame()),
-                             "[ ,", paste0(dataVars, "var"), ", drop=FALSE]")
+        # assignment <- paste0(dataVars, " = ", substitute(df, parent.frame()),
+        #                      "[ ,", paste0(dataVars, "var"), ", drop=FALSE]")
+        vars <- sapply(dataVars, function(x) {
+            eval(parse(text=paste0(x, 'var')))}, simplify=TRUE)
+        assignment <- paste0(dataVars, " = evalVarArg(", vars, ", ",
+                            substitute(df, parent.frame()), ")")
         eval(parse(text=paste0("list(", paste(assignment, collapse=", "), ")")))
     }
     if (hasZ){
@@ -146,7 +151,6 @@ echartr = function(
     ## type is converted to a data.frame, colnames:
     ## name type stack xyflip smooth fill sort ribbon roseType mapType mapMode
     dfType <- merge(data.frame(name=type), validChartTypes)
-    if (xyflip) type$xyflip <- TRUE
 
     ## check types
     if (nlevels(as.factor(dfType$type)) > 1){
@@ -154,9 +158,9 @@ echartr = function(
             stop(paste("Only Cartesion Coordinates charts (scatter/point/bubble,",
                        "line, area, bar, k) support mixed types"))
     }
-    if (nlevels(as.factor(dfType$xyflip)) > 1)
-        warning(paste("xyflip is not consistent across the types given.\n",
-                      dfType[, "xyflip"]))
+    # if (nlevels(as.factor(dfType$xyflip)) > 1)
+    #     warning(paste("xyflip is not consistent across the types given.\n",
+    #                   dfType[, "xyflip"]))
 
     # ---------------------------params list----------------------
     .makeSeriesList <- function(z){  # each timeline create a options list
@@ -202,11 +206,12 @@ echartr = function(
         chart <- chart %>% setTimeline(show=TRUE, y2=50, data=uniZ)
     }
 
-    if (any(type %in% c('line', 'bar', 'scatter', 'k'))){
+    if (any(dfType$type %in% c('line', 'bar', 'scatter', 'k'))){
         #chart %>% eAxis('x', name = xlab) %>% eAxis('y', name = ylab)
-        chart %>% setXAxis(name = xlab[[1]]) %>% setYAxis(name = ylab[[1]])
+        chart %>% setXAxis(name = xlab[[1]]) %>% setYAxis(name = ylab[[1]]) %>%
+            setTooltip() %>% setToolbox() %>% setLegend()
     }else{
-        chart
+        chart %>% setTooltip() %>% setToolbox() %>% setLegend()
     }
 }
 

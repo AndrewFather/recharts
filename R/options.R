@@ -5,7 +5,6 @@
 #' This function modified a few default options for the axis component in
 #' ECharts: 1) \code{scale = TRUE} (was \code{FALSE} by default in ECharts); 2)
 #' \code{axisLine$onZero = FALSE} (was \code{TRUE} in ECharts).
-#' @export
 #' @rdname axis
 eAxis = function(
     chart, which = c('x', 'y'),
@@ -47,13 +46,11 @@ eAxis = function(
     return(chart)
 }
 
-#' @export
 #' @rdname axis
 eXAxis = function(chart, ...) {
   eAxis(chart, which = 'x', ...)
 }
 
-#' @export
 #' @rdname axis
 eYAxis = function(chart, ...) {
   eAxis(chart, which = 'y', ...)
@@ -234,8 +231,8 @@ setAxis = function(
     )
     if (!is.null(series1))
         o1 = list(
-            type = match.arg(type), show = show, position = position1,
-            name = name, nameLocation = match.arg(nameLocation),
+            type = match.arg(type), show = show, position = position1, #name = name,
+            nameLocation = match.arg(nameLocation),
             nameTextStyle = nameTextStyle, boundaryGap = boundaryGap, min = min,
             max = max, scale = scale, splitNumber = splitNumber, axisLine = axisLine,
             axisTick = axisTick, axisLabel = axisLabel, splitLine = splitLine,
@@ -244,15 +241,20 @@ setAxis = function(
     if (length(x[[i]]) > 0) {
         # only merge the arguments that are not missing, e.g. eAxis(min = 0) will
         # only override 'min' but will not override the 'name' attribute
-        a = intersect(names(as.list(match.call()[-1])), names(o))  #;browser()
-        if (length(x[[i]]) < 2 && axIdx == 1) x[[i]][[axIdx+1]] <- list()
+        a = intersect(names(as.list(match.call()[-1])), names(o))
+        if (!is.null(series1))
+            a1 = intersect(names(as.list(match.call()[-1])), names(o1))
+        if (length(x[[i]]) < 2 && axIdx == 1)
+            x[[i]][[axIdx+1]] <- mergeList(list(), o)
         x[[i]][[axIdx+1]] = mergeList(x[[i]][[axIdx+1]], o[a])
-        if (!is.null(series1)) x[[i]][[2-axIdx]] = mergeList(x[[i]][[2-axIdx]], o1[a])
+
+        if (!is.null(series1))
+            x[[i]][[2-axIdx]] = mergeList(x[[i]][[2-axIdx]], o1[a1])
     } else {
         x[[i]][[axIdx+1]] = list()
         x[[i]][[axIdx+1]] = mergeList(x[[i]][[axIdx+1]], o)
         if (!is.null(series1)){
-            x[[i]][[2-axIdx]] = list()
+            if (length(x[[i]][[2-axIdx]]) == 0) x[[i]][[2-axIdx]] = list()
             x[[i]][[2-axIdx]] = mergeList(x[[i]][[2-axIdx]], o1)
         }
     }
@@ -262,7 +264,7 @@ setAxis = function(
     ax = paste0(which, "AxisIndex")
     if (!is.null(series1)){
         if (axIdx == 0) seriesAx1 = series1 else seriesAx1 = series
-        seriesAx1 = which(seriesAx1 %in% allSeries)
+        seriesAx1 = which(allSeries %in% seriesAx1)
         if (hasZ){
             for (i in 1:length(chart$x$options)){
                 chart$x$options[[i]]$series[[seriesAx1]][[ax]] = 1
@@ -307,6 +309,29 @@ axisType = function(data, which = c('x', 'y')) {
   str(data)
   stop('Unable to derive the axis type automatically from the ', which, ' variable')
 }
+
+flipAxis <- function(chart, ...){
+    stopifnot(inherits(chart, 'echarts'))
+    hasZ <- 'timeline' %in% names(chart$x)
+    if (hasZ){
+        if ('xAxis' %in% names(chart$x$options[[1]]) &&
+            'yAxis' %in% names(chart$x$options[[1]])) {
+            axes <- exchange(chart$x$options[[1]]$xAxis,
+                             chart$x$options[[1]]$yAxis)
+            chart$x$options[[1]]$xAxis <- axes[[1]]
+            chart$x$options[[1]]$yAxis <- axes[[2]]
+        }
+    }else{
+        if ('xAxis' %in% names(chart$x) &&
+              'yAxis' %in% names(chart$x)){
+            axes <- exchange(chart$x$xAxis, chart$x$yAxis)
+            chart$x$xAxis <- axes[[1]]
+            chart$x$yAxis <- axes[[2]]
+        }
+    }
+    return(chart)
+}
+
 
 #' Set \code{grid} of Echarts (Only for Charts Of Cartesian Coordinates System)
 #'
@@ -403,17 +428,17 @@ tuneGrid <- function(chart, ...){
             || (! is.null(lst$legend$show && lst$legend$show))){
             addY <- 15
             addX <- 15
-            if (lst$legend$orient == 'horizontal'){
-                if (lst$legend$y == 'bottom'){
+            if (ifnull(lst$legend$orient, 'horizontal') == 'horizontal'){
+                if (ifnull(lst$legend$y, 'top') == 'bottom'){
                     lstGrid$y2 <- ifnull(lstGrid$y2, 60) + addY
-                }else if (lst$legend$y == 'top'){
+                }else if (ifnull(lst$legend$y, 'top') == 'top'){
                     lstGrid$y <- ifnull(lstGrid$y, 60) + addY
                 }
             }
-            if (lst$legend$orient == 'horizontal'){
-                if (lst$legend$x == 'left'){
+            if (ifnull(lst$legend$orient, 'horizontal') == 'horizontal'){
+                if (ifnull(lst$legend$x, 'left') == 'left'){
                     lstGrid$x <- ifnull(lstGrid$x, 80) + addX
-                }else if (lst$legend$x == 'right'){
+                }else if (ifnull(lst$legend$x, 'left') == 'right'){
                     lstGrid$x2 <- ifnull(lstGrid$x2, 80) + addX
                 }
             }
@@ -1345,7 +1370,7 @@ setSymbolList <- function(chart, symbolList=NULL, ...){
     stopifnot(inherits(chart, 'echarts'))
     hasZ <- 'timeline' %in% names(chart$x)
     if (!is.null(symbolList)) {
-        intersectSymbolList <- intersect(tolower(symbolList), tolower(validSymbols))
+        intersectSymbolList <- symbolList[tolower(symbolList) %in% tolower(validSymbols)]
         idx <- sapply(intersectSymbolList, function(x) {
             return(which(tolower(validSymbols) == x))
         })

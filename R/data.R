@@ -9,17 +9,16 @@ series_scatter <- function(lst, type, return=NULL, ...){
         maxWeight <- max(abs(lst$weight[,1]), na.rm=TRUE)
         range <- maxWeight - minWeight
         folds <- maxWeight / minWeight
-        if (abs(folds) < 50){
+        if (abs(folds) < 50){  # max/min < 50, linear
             jsSymbolSize <- JS(paste0('function (value){
                 return ', ifelse(abs(folds) < 5, 4, ifelse(abs(folds) < 10, 2, 1)),
                 '*Math.round(Math.abs(value[2]/', minWeight,'));
                 }'))
-        }else{
+        }else{  # max/min >= 50, normalize
             jsSymbolSize <- JS(paste0('function (value){
                 return Math.round(1+29*(Math.abs(value[2])-', minWeight,')/', range, ');
             }'))
         }
-
     }
     obj <- list()
     if (is.null(lst$series)) {  # no series
@@ -34,13 +33,14 @@ series_scatter <- function(lst, type, return=NULL, ...){
         if (is.null(lst$weight)){
             obj <- lapply(seq_along(data), function(i){
                 list(name = names(data)[i], type = type[i],
-                     data = unname(as.matrix(data[[i]])[,1:2]))
+                     data = unname(as.matrix(data[[i]])[,1:2]),
+                     large = nrow(data) > 2000) ## > 2000 points, large = TRUE
             })  ## only fetch col 1-2 of data, col 3 is series
         }else{
             obj <- lapply(seq_along(data), function(i){
                 list(name = names(data)[i], type = type[i],
                      data = unname(as.matrix(data[[i]])[,c(1:3)]),
-                     symbolSize=jsSymbolSize)
+                     symbolSize=jsSymbolSize, large = nrow(data) > 2000)
             })  ## fetch col 1-2 and 3 (x, y, weight)
         }
     }
@@ -52,7 +52,37 @@ series_scatter <- function(lst, type, return=NULL, ...){
     }
 }
 
+series_bar <- function(lst, type, return=NULL, ...){
+    lst <- mergeList(list(series=NULL), lst)
+    data <- cbind(lst$y[,1], lst$x[,1])
+    #browser()
+    obj <- list()
+    if (is.null(lst$series)) {  # no series
+        if (is.numeric(lst$x[,1])){
+            obj <- list(list(type=type[1], data=data[,1:2]))
+        }else{
+            obj <- list(list(type=type[1], data=data[,1]))
+        }
+    }else{  # series-specific
+        data <- cbind(data, lst$series[,1])
+        data <- split(as.data.frame(data), lst$series[,1])
+        obj <- lapply(seq_along(data), function(i){
+            if (is.numeric(lst$x[,1])){
+                list(name = names(data)[i], type = type[i],
+                     data = unname(as.matrix(data[[i]])[,1:2]))
+            }else{
+                list(name = names(data)[i], type = type[i],
+                     data = unname(as.matrix(data[[i]])[,1]))
+            }
+        })
+    }
 
+    if (is.null(return)){
+        return(obj)
+    }else{
+        return(obj[intersect(names(obj), return)])
+    }
+}
 
 #---------------------------legacy functions-----------------------------------
 # split the data matrix for a scatterplot by series

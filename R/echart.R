@@ -89,7 +89,7 @@ eChart = echart
 
 #' @export
 echartr = function(
-    data, x = NULL, y = x, z = NULL, series = NULL, weight = NULL,
+    data, x = NULL, y = NULL, z = NULL, series = NULL, weight = NULL,
     lat = NULL, lng = NULL, type = 'auto', ...
 ) {
     # experimental function
@@ -100,6 +100,7 @@ echartr = function(
     vArgs <- vArgs[dataVars]
 
     # ------------extract var names and values-----------------
+    xvar = yvar = NULL
     eval(parse(text=paste0(names(vArgs), "var <- evalVarArg(",
                            sapply(vArgs, deparse), ", data, eval=FALSE)")))
     eval(parse(text=paste0(names(vArgs), " <- evalVarArg(",
@@ -109,6 +110,7 @@ echartr = function(
     # ------------------x, y lab(s)----------------------------
     xlab = sapply(xvar, autoArgLabel, auto=deparse(substitute(xvar)))
     ylab = sapply(yvar, autoArgLabel, auto=deparse(substitute(yvar)))
+    if (length(ylab) == 0) ylab = "Freq"
 
     # -------------split multi-timeline df to lists-----------
 
@@ -168,11 +170,11 @@ echartr = function(
                                     'recharts')
         if (is.null(z)){  # no timeline
             out <- structure(list(
-                series = series_fun(metaData, type=dfType$type)
+                series = series_fun(metaData, type=dfType)
             ), meta = metaData)
         }else{
             out <- structure(list(
-                series = series_fun(metaData[[z]], type=dfType$type)
+                series = series_fun(metaData[[z]], type=dfType)
             ), meta = metaData[[z]])
         }
 
@@ -206,12 +208,15 @@ echartr = function(
         chart <- chart %>% setTimeline(show=TRUE, y2=50, data=uniZ)
     }
 
+
+
     if (any(dfType$type %in% c('line', 'bar', 'scatter', 'k'))){
-        #chart %>% eAxis('x', name = xlab) %>% eAxis('y', name = ylab)
-        chart %>% setXAxis(name = xlab[[1]]) %>% setYAxis(name = ylab[[1]]) %>%
-            setTooltip() %>% setToolbox() %>% setLegend()
+        chart <- chart %>% setXAxis(name = xlab[[1]]) %>%
+            setYAxis(name = ylab[[1]]) %>%
+            setTooltip() %>% setToolbox() %>% setLegend() %>%
+            flipAxis(flip=any(dfType$xyflip))
     }else{
-        chart %>% setTooltip() %>% setToolbox() %>% setLegend()
+        chart <- chart %>% setTooltip() %>% setToolbox() %>% setLegend()
     }
 }
 

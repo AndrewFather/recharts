@@ -138,10 +138,10 @@ echartr = function(
 
     # -----------------determine types---------------------------
     type <- tolower(type)
-    stopifnot(all(type %in% c('auto', validChartTypes$name)))
+    stopifnot(any(sapply(c('auto', validChartTypes$name), grepl, x=type)))
     if (!is.null(series)) lvlSeries <- levels(as.factor(series[,1]))
     if (!is.null(series)) nSeries <- length(lvlSeries) else nSeries <- 1
-    if (type == 'auto')  type = determineType(x[,1], y[,1])
+    if (type[1] == 'auto')  type = determineType(x[,1], y[,1])
 
     ## type vector: one series, one type
     if (length(type) >= nSeries){
@@ -152,7 +152,9 @@ echartr = function(
 
     ## type is converted to a data.frame, colnames:
     ## name type stack xyflip smooth fill sort ribbon roseType mapType mapMode
-    dfType <- merge(data.frame(name=type), validChartTypes)
+    dfType <- t(sapply(validChartTypes$name, function(x) grepl(x, type)))
+    typeIdx <- sapply(seq_len(ncol(dfType)), function(i) which(dfType[,i]))
+    dfType <- validChartTypes[typeIdx,]
 
     ## check types
     if (nlevels(as.factor(dfType$type)) > 1){

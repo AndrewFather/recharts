@@ -53,6 +53,9 @@ series_scatter <- function(lst, type, return=NULL, ...){
 }
 
 series_bar <- function(lst, type, return=NULL, ...){
+    # example:
+    # echartr(mtcars, hp, mpg, series=factor(am,labels=c('Manual','Automatic')),
+    #               type=c('hbar','scatter'))
     lst <- mergeList(list(series=NULL), lst)
     data <- cbind(lst$y[,1], lst$x[,1])
     if (!'y' %in% names(lst)) {  # y is null, freq of x
@@ -67,23 +70,22 @@ series_bar <- function(lst, type, return=NULL, ...){
     if (is.null(lst$series)) {  # no series
         if (is.numeric(lst$x[,1])){
             obj <- list(list(type=type$type[1], data=data[,1:2]))
-            if (all(type$xyflip)) obj[[1]]$barHeight=10
+            if (any(type$xyflip)) obj[[1]]$barHeight=10
         }else{
             obj <- list(list(type=type$type[1], data=data[,1]))
         }
     }else{  # series-specific
-        data <- cbind(data, lst$series[,1])
-        data <- tapply(data[,1], list(data[,2], data[,3]), function(x) {
-            if (length(x) == 1) return(x)
-            stop('y must only have one value corresponding to each combination of x and series')
-        })
-        data[is.na(data)] = 0
+        dataCross <- tapply(data[,1], list(1:nrow(data), lst$series[,1]),
+                            function(x) x)
+        rownames(dataCross) <- data[,2]
+        data <- dataCross
+        data[is.na(data)] = 'nan'
         obj <- lapply(seq_len(ncol(data)), function(i){
             if (is.numeric(lst$x[,1])){
                 o = list(name = colnames(data)[i], type = type$type[i],
-                         data = unname(cbind(as.numeric(rownames(data),
-                                                        data[,i]))))
-                if (all(type$xyflip))
+                         data = unname(cbind(as.numeric(rownames(data)),
+                                                        data[,i])))
+                if (any(type$xyflip))
                     o <- mergeList(o, list(barHeight=10))
             }else{
                 o = list(name = colnames(data)[i], type = type$type[i],
@@ -100,6 +102,31 @@ series_bar <- function(lst, type, return=NULL, ...){
         return(obj[intersect(names(obj), return)])
     }
 }
+
+series_line = function(lst, type, return=NULL, ...) {
+    lst <- mergeList(list(series=NULL), lst)
+    data <- cbind(lst$y[,1], lst$x[,1])
+
+    if (is.null(lst$x[,1]) && is.ts(lst$y[,1])) {
+        lst$x[,1] = as.numeric(time(lst$y[,1]))
+        lst$y[,1] = as.numeric(lst$y[,1])
+    }
+    if (is.numeric(lst$x[,1])) {
+        obj = series_scatter(lst, type = type)
+    }
+    if (is.null(series)) {
+        obj = list(list(type = 'line', data = lst$y[,1]))
+    }
+    if (is.null(obj)) obj = series_bar(lst, type = type)
+
+    if (is.null(return)){
+        return(obj)
+    }else{
+        return(obj[intersect(names(obj), return)])
+    }
+
+}
+
 
 #---------------------------legacy functions-----------------------------------
 # split the data matrix for a scatterplot by series

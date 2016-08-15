@@ -23,22 +23,22 @@ series_scatter <- function(lst, type, return=NULL, ...){
     obj <- list()
     if (is.null(lst$series)) {  # no series
         if (is.null(lst$weight))
-            obj <- list(list(type=type[1], data=data[,1:2]))
+            obj <- list(list(type=type$type[1], data=data[,1:2]))
         else
-            obj <- list(list(type=type[1], data=data[,1:3],
+            obj <- list(list(type=type$type[1], data=data[,1:3],
                              symbolSize=jsSymbolSize))
     }else{  # series-specific
         data <- cbind(data, lst$series[,1])
         data <- split(as.data.frame(data), lst$series[,1])
         if (is.null(lst$weight)){
             obj <- lapply(seq_along(data), function(i){
-                list(name = names(data)[i], type = type[i],
+                list(name = names(data)[i], type = type$type[i],
                      data = unname(as.matrix(data[[i]])[,1:2]),
                      large = nrow(data) > 2000) ## > 2000 points, large = TRUE
             })  ## only fetch col 1-2 of data, col 3 is series
         }else{
             obj <- lapply(seq_along(data), function(i){
-                list(name = names(data)[i], type = type[i],
+                list(name = names(data)[i], type = type$type[i],
                      data = unname(as.matrix(data[[i]])[,c(1:3)]),
                      symbolSize=jsSymbolSize, large = nrow(data) > 2000)
             })  ## fetch col 1-2 and 3 (x, y, weight)
@@ -55,25 +55,42 @@ series_scatter <- function(lst, type, return=NULL, ...){
 series_bar <- function(lst, type, return=NULL, ...){
     lst <- mergeList(list(series=NULL), lst)
     data <- cbind(lst$y[,1], lst$x[,1])
-    #browser()
+    if (!'y' %in% names(lst)) {  # y is null, freq of x
+        if (is.numeric(data[,1])){
+            data <- unname(as.matrix(as.data.frame(table(data[,1]))))
+        }else{
+            data <- unname(as.matrix(table(data[,1])))
+        }
+    }
+
     obj <- list()
     if (is.null(lst$series)) {  # no series
         if (is.numeric(lst$x[,1])){
-            obj <- list(list(type=type[1], data=data[,1:2]))
+            obj <- list(list(type=type$type[1], data=data[,1:2]))
+            if (all(type$xyflip)) obj[[1]]$barHeight=10
         }else{
-            obj <- list(list(type=type[1], data=data[,1]))
+            obj <- list(list(type=type$type[1], data=data[,1]))
         }
     }else{  # series-specific
         data <- cbind(data, lst$series[,1])
-        data <- split(as.data.frame(data), lst$series[,1])
-        obj <- lapply(seq_along(data), function(i){
+        data <- tapply(data[,1], list(data[,2], data[,3]), function(x) {
+            if (length(x) == 1) return(x)
+            stop('y must only have one value corresponding to each combination of x and series')
+        })
+        data[is.na(data)] = 0
+        obj <- lapply(seq_len(ncol(data)), function(i){
             if (is.numeric(lst$x[,1])){
-                list(name = names(data)[i], type = type[i],
-                     data = unname(as.matrix(data[[i]])[,1:2]))
+                o = list(name = colnames(data)[i], type = type$type[i],
+                         data = unname(cbind(as.numeric(rownames(data),
+                                                        data[,i]))))
+                if (all(type$xyflip))
+                    o <- mergeList(o, list(barHeight=10))
             }else{
-                list(name = names(data)[i], type = type[i],
-                     data = unname(as.matrix(data[[i]])[,1]))
+                o = list(name = colnames(data)[i], type = type$type[i],
+                         data = unname(data[,i]))
             }
+            if (type$stack[i]) o[['stack']] = 'stack'
+            return(o)
         })
     }
 
@@ -127,6 +144,7 @@ data_bar = function(x, y, series = NULL, type = 'bar') {
     if (length(z) == 1) return(z)
     stop('y must only have one value corresponding to each combination of x and series')
   })
+  xy[is.na(xy)] = 0
   nms = colnames(xy)
   obj = list()
   for (i in seq_len(ncol(xy))) {

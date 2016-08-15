@@ -310,7 +310,9 @@ axisType = function(data, which = c('x', 'y')) {
   stop('Unable to derive the axis type automatically from the ', which, ' variable')
 }
 
-flipAxis <- function(chart, ...){
+flipAxis <- function(chart, flip=TRUE, ...){
+    # flip x|y-axis
+    if (!flip) return(chart)
     stopifnot(inherits(chart, 'echarts'))
     hasZ <- 'timeline' %in% names(chart$x)
     if (hasZ){
@@ -396,7 +398,7 @@ tuneGrid <- function(chart, ...){
     types <- getSeriesPart(chart, 'type')
     hasZ <- 'timeline' %in% names(chart$x)
     # if not Cartesian Coord chart, skip out
-    if (! all(types %in% c('scatter', 'point', 'bubble', 'line', 'bar')))
+    if (! all(types %in% c('scatter', 'line', 'bar', 'k')))
         return(chart)
     else
         lstGrid <- list()
@@ -490,16 +492,7 @@ tuneGrid <- function(chart, ...){
         }
     }
     ## wrap up
-    # if (!is.null(lstGrid)){
-    #     if (ifnull(lstGrid$x, 80) - redundX > 80)
-    #         lstGrid$x <- ifnull(lstGrid$x, 80) - redundX
-    #     if (ifnull(lstGrid$x2, 80) - redundX > 80)
-    #         lstGrid$x2 <- ifnull(lstGrid$x2, 80) - redundX
-    #     if (ifnull(lstGrid$y, 60) - redundY > 60)
-    #         lstGrid$y <- ifnull(lstGrid$y, 60) - redundY
-    #     if (ifnull(lstGrid$y2, 60) - redundY > 60)
-    #         lstGrid$y2 <- ifnull(lstGrid$y2, 60) - redundY
-    # }
+
     # collect all grid features
     if (length(lstGrid) > 0){
         if (hasZ)
